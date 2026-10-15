@@ -3,6 +3,7 @@
 - Bạn không nhớ lịch hay lười lên check lịch trên web của trường mỗi ngày? 
 Đây là một dự án nhỏ dùng để tự động sync và set thông báo cho UIT Course của bạn. (tại lúc nộp bài bắt đầu, 30 phút, 3 tiếng, 1 ngày trước)
 Khi có một lịch mới được giảng viên up lên hệ thống, bạn sẽ được thông báo qua Gmail và sẽ tự động đồng bộ vào lịch của bạn.
+<img width="1628" height="930" alt="Tự động đồng bộ deadline trên MOODLE (COURSEcourses uit edu vn) vào lịch Google của bạn" src="https://github.com/user-attachments/assets/96de3420-fd6f-408f-abe2-495363f4d883" />
 
 # 📅 UIT Moodle → Google Calendar Sync
 
@@ -23,6 +24,8 @@ Tự động đồng bộ thời gian bắt đầu, hạn nộp bài từ **Mood
   - Trước 30 phút
   - Trước 3 tiếng
   - Trước 1 ngày
+  <img width="498" height="302" alt="Screenshot 2026-10-15 231245" src="https://github.com/user-attachments/assets/87605f4e-e975-4bb5-8658-6183517ea289" />
+
 - 📧 **Thông báo qua Email:** Gửi mail ngay lập tức khi phát hiện lịch nộp bài bị thay đổi hoặc hệ thống gặp sự cố kết nối.
 - 📊 **Dashboard & Lịch sử log:** Tự động tạo trang quản lý trên Google Sheets để theo dõi trạng thái hệ thống và xem nhật ký thay đổi.
 
@@ -45,6 +48,8 @@ Truy cập theo đường dẫn sau [Calendar Export](https://courses.uit.edu.vn
    - **Sự kiện để xuất:** Tất cả sự kiện
    - **Khoảng thời gian:** Chọn **Khoảng tùy chọn**, ví dụ: Khoảng tùy chọn (10/10/26 - 15/10/27)
 5. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link vừa tạo.
+<img width="966" height="802" alt="paint_blurred_gaussian (1)" src="https://github.com/user-attachments/assets/7fb16ba0-4ff9-48a3-9e1d-64fb67b96312" />
+
 
 ---
 
@@ -54,6 +59,9 @@ Truy cập theo đường dẫn sau [Calendar Export](https://courses.uit.edu.vn
 2. Trên thanh công cụ, chọn **Tiện ích mở rộng (Extensions)** → **Apps Script**.
 3. Xóa toàn bộ mã mặc định trong tệp `Mã.gs` (hoặc `Code.gs`).
 4. Sao chép toàn bộ nội dung [mã nguồn dự án](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/blob/main/Auto-Sync-UIT-Course-to-your-calendar.gs) này và dán vào. (Truy cập link và nhấn vào biểu tượng Copy)
+<img width="1617" height="492" alt="Screenshot 2026-10-15 230634" src="https://github.com/user-attachments/assets/122555a5-f4b1-4c6d-a710-2f9f80649259" />
+
+
 
 ---
 
@@ -79,20 +87,25 @@ const CONFIG = {
 ### Bước 4: Khởi tạo và cấp quyền
 
 1. Chọn hàm **`setup`** từ danh sách hàm trên thanh công cụ và bấm **Chạy (Run)**.
+<img width="482" height="75" alt="Screenshot 2026-10-15 230837" src="https://github.com/user-attachments/assets/9c12f697-57bd-4648-b9db-efbec352598d" />
+
 2. Cấp quyền truy cập cho Script (chỉ thực hiện lần đầu):
    - Chọn **Xem lại quyền (Review Permissions)**.
    - Chọn tài khoản Google của bạn.
    - Nhấn **Nâng cao (Advanced)** → Chọn **Đi tới... (Go to...)**.
    - Nhấn **Cho phép (Allow)**.
 3. Đổi sang hàm **`testSync`** và bấm **Chạy** để tiến hành đồng bộ lần đầu tiên.
+<img width="465" height="65" alt="Screenshot 2026-10-15 231414" src="https://github.com/user-attachments/assets/f643f3a2-5cfb-4c63-8a98-51a9dbca58d2" />
 
 ---
 
 ### Bước 5: Kích hoạt đồng bộ tự động
 
 1. Chọn hàm **`createTrigger`** và bấm **Chạy**. Kịch bản sẽ bắt đầu tự động chạy ngầm mỗi 15 phút.
-2. *(Tùy chọn)* Chọn hàm **`createSpreadsheetOpenTrigger`** và bấm **Chạy** để tạo Menu điều khiển nhanh ngay trên giao diện Google Sheets.
+<img width="500" height="67" alt="Screenshot 2026-10-15 231806" src="https://github.com/user-attachments/assets/7a5cb178-dd4c-4e1e-aa63-e91d7564b86a" />
 
+2. *(Tùy chọn)* Chọn hàm **`createSpreadsheetOpenTrigger`** và bấm **Chạy** để tạo Menu điều khiển nhanh ngay trên giao diện Google Sheets.
+<img width="711" height="292" alt="Screenshot 2026-10-15 231556" src="https://github.com/user-attachments/assets/72428c5c-2aa3-44ca-9d8d-b3852bb113e6" />
 ---
 
 ## 🛠️ Công cụ hỗ trợ & Xử lý lỗi
@@ -106,6 +119,7 @@ Nếu gặp sự cố trong quá trình vận hành, bạn có thể chạy các
 | `fixDuplicates()` | Xóa toàn bộ lịch bị trùng lặp và làm sạch cơ sở dữ liệu để đồng bộ lại từ đầu. |
 | `updateRemindersForExistingEvents()` | Bổ sung các mốc thông báo mới cho toàn bộ sự kiện hiện có trên Google Calendar. |
 | `systemStatus()` | In nhật ký kiểm tra trạng thái hoạt động của kịch bản. |
+
 
 ---
 
