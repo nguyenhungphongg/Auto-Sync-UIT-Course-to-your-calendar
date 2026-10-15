@@ -1,8 +1,11 @@
 # Auto-Sync-UIT-Course-to-your-calendar
 - Bạn đã từng bị miss lịch nộp bài trên course rồi bị nộp trễ, không nộp được do quá hạn nên bị 0đ? 
 - Bạn không nhớ lịch hay lười lên check lịch trên web của trường mỗi ngày? 
+
 Đây là một dự án nhỏ dùng để tự động sync và set thông báo cho UIT Course của bạn. (tại lúc nộp bài bắt đầu, 30 phút, 3 tiếng, 1 ngày trước)
+
 Khi có một lịch mới được giảng viên up lên hệ thống, bạn sẽ được thông báo qua Gmail và sẽ tự động đồng bộ vào lịch của bạn.
+
 <img width="1628" height="930" alt="Tự động đồng bộ deadline trên MOODLE (COURSEcourses uit edu vn) vào lịch Google của bạn" src="https://github.com/user-attachments/assets/96de3420-fd6f-408f-abe2-495363f4d883" />
 
 # 📅 UIT Moodle → Google Calendar Sync
