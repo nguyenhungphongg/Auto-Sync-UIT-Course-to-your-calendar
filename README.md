@@ -1,9 +1,12 @@
 # Auto-Sync-UIT-Course-to-your-calendar
-Một dự án nhỏ dùng để tự động sync và set thông báo cho UIT Course của bạn
+- Bạn đã từng bị miss lịch nộp bài trên course rồi bị nộp trễ, không nộp được do quá hạn nên bị 0đ? 
+- Bạn không nhớ lịch hay lười lên check lịch trên web của trường mỗi ngày? 
+Đây là một dự án nhỏ dùng để tự động sync và set thông báo cho UIT Course của bạn. (tại lúc nộp bài bắt đầu, 30 phút, 3 tiếng, 1 ngày trước)
+Khi có một lịch mới được giảng viên up lên hệ thống, bạn sẽ được thông báo qua Gmail và sẽ tự động đồng bộ vào lịch của bạn.
 
 # 📅 UIT Moodle → Google Calendar Sync
 
-Tự động đồng bộ lịch học, lịch thi và hạn nộp bài từ **Moodle UIT (Trường Đại học Công nghệ Thông tin - ĐHQG-HCM)** sang **Google Calendar**. Hệ thống đi kèm bảng điều khiển trực quan trên **Google Sheets** và dịch vụ tự động gửi email thông báo khi có sự thay đổi lịch học.
+Tự động đồng bộ thời gian bắt đầu, hạn nộp bài từ **Moodle UIT (Trường Đại học Công nghệ Thông tin - ĐHQG-HCM)** sang **Google Calendar**. Hệ thống đi kèm bảng điều khiển trực quan trên **Google Sheets** và dịch vụ tự động gửi email thông báo khi có sự thay đổi lịch nộp bài trên COURSE.
 
 ![Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Google Calendar](https://img.shields.io/badge/Google%20Calendar-4285F4?style=for-the-badge&logo=google-calendar&logoColor=white)
@@ -13,14 +16,14 @@ Tự động đồng bộ lịch học, lịch thi và hạn nộp bài từ **M
 
 ## ✨ Tính năng nổi bật
 
-- 🔄 **Đồng bộ tự động ngầm:** Tự động kiểm tra và cập nhật lịch học mỗi 15 phút mà không cần bật máy tính.
-- 🎯 **Phát hiện thay đổi thông minh:** Tự động nhận biết khi có buổi học mới được **Thêm**, **Đổi lịch** hoặc bị **Hủy/Xoá**.
-- 🔔 **Hệ thống nhắc nhở đa mốc:** Tự động cài đặt 4 mốc thông báo cho từng buổi học (bạn có thể tự setting lại phần này nếu không thích):
+- 🔄 **Đồng bộ tự động ngầm:** Tự động kiểm tra và cập nhật lịch nộp bài mỗi 15 phút mà không cần bật máy tính.
+- 🎯 **Phát hiện thay đổi thông minh:** Tự động nhận biết khi có buổi nộp bài mới được **Thêm**, **Đổi lịch** hoặc bị **Hủy/Xoá**.
+- 🔔 **Hệ thống nhắc nhở đa mốc:** Tự động cài đặt 4 mốc thông báo cho từng lịch nộp bài (bạn có thể tự setting lại phần này nếu không thích):
   - Ngay tại thời điểm bắt đầu
   - Trước 30 phút
   - Trước 3 tiếng
   - Trước 1 ngày
-- 📧 **Thông báo qua Email:** Gửi mail ngay lập tức khi phát hiện lịch học bị thay đổi hoặc hệ thống gặp sự cố kết nối.
+- 📧 **Thông báo qua Email:** Gửi mail ngay lập tức khi phát hiện lịch nộp bài bị thay đổi hoặc hệ thống gặp sự cố kết nối.
 - 📊 **Dashboard & Lịch sử log:** Tự động tạo trang quản lý trên Google Sheets để theo dõi trạng thái hệ thống và xem nhật ký thay đổi.
 
 ---
