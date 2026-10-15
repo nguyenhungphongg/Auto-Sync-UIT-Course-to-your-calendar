@@ -45,7 +45,7 @@ Truy cập theo đường dẫn sau [Calendar Export](https://courses.uit.edu.vn
 
 ---
 
-### Bước 2: Tạo dự án Google Apps Script
+### Bước 2: Tạo dự án Google Apps Script (cần thực hiện bằng máy tính)
 
 1. Truy cập [Google Sheets](https://sheets.google.com/) và tạo một trang tính mới.
 2. Trên thanh công cụ, chọn **Tiện ích mở rộng (Extensions)** → **Apps Script**.
@@ -65,8 +65,9 @@ const CONFIG = {
   NOTIFY_EMAIL: 'email_cua_ban@gm.uit.edu.vn', // Email nhận thông báo
   ERROR_REMINDER_COUNT: 10, //Tần suất nhắc lại email thông báo lỗi khi hệ thống gặp sự cố liên tục, nhằm mục đích chống spam hộp thư.
   MOODLE_URL: 'DÁN_LINK_MOODLE_ICAL_CỦA_BẠN_VÀO_ĐÂY', 
-  SYNC_INTERVAL: 15, // Chu kỳ đồng bộ (phút)
-  REMINDERS: [0, 30, 180, 1440] // Các mốc thông báo (phút)
+  SYNC_INTERVAL: 15, // Chu kỳ đồng bộ (phút), khoảng tối ưu để tự động chạy code và kéo lịch về. Chu kỳ đồng bộ càng ít thì quota (hạn mức) trong ngày của bạn càng cao và có thể hết hạn mức (code dừng hoạt động tạm thời) do chính sách của Google.
+  REMINDERS: [0, 30, 180, 1440] // Các mốc thông báo trước đó (phút). Mặc định tương đương ngay tại thời điểm bắt đầu, 30 phút trước, 3 giờ trước, 1 ngày trước.
+  //Nếu không muốn thông báo, vui lòng xoá nội dung trong REMINDERS, ví dụ: REMINDERS: []
 };
 ```
 
