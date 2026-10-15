@@ -50,7 +50,7 @@ Truy cập theo đường dẫn sau [Calendar Export](https://courses.uit.edu.vn
 1. Truy cập [Google Sheets](https://sheets.google.com/) và tạo một trang tính mới.
 2. Trên thanh công cụ, chọn **Tiện ích mở rộng (Extensions)** → **Apps Script**.
 3. Xóa toàn bộ mã mặc định trong tệp `Mã.gs` (hoặc `Code.gs`).
-4. Sao chép toàn bộ nội dung mã nguồn dự án này và dán vào.
+4. Sao chép toàn bộ nội dung [mã nguồn dự án](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/blob/main/Auto-Sync-UIT-Course-to-your-calendar.gs) này và dán vào. (Truy cập link và nhấn vào biểu tượng Copy)
 
 ---
 
