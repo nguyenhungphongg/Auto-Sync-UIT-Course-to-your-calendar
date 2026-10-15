@@ -25,7 +25,7 @@ const CONFIG = {
 };
 
 // =================================================
-// SETUP LẦN ĐẦU
+// SETUP LẦN ĐẦU, KHÔNG CẦN CHỈNH TỪ PHẦN NÀY TRỞ ĐI CHỈ CẦN SỬA CONFIG
 // =================================================
 function setup() {
   const props = PropertiesService.getScriptProperties();
