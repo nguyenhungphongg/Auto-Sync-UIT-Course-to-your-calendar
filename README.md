@@ -14,29 +14,34 @@ Tự động đồng bộ lịch học, lịch thi và hạn nộp bài từ **M
 ## ✨ Tính năng nổi bật
 
 - 🔄 **Đồng bộ tự động ngầm:** Tự động kiểm tra và cập nhật lịch học mỗi 15 phút mà không cần bật máy tính.
-- 🎯 **Phát hiện thay đổi thông minh:** Tự động nhận biết khi có buổi học mới được **Thêm**, **Đổi lịch/Phòng** hoặc bị **Hủy**.
-- 🔔 **Hệ thống nhắc nhở đa mốc:** Tự động cài đặt 4 mốc thông báo cho từng buổi học:
+- 🎯 **Phát hiện thay đổi thông minh:** Tự động nhận biết khi có buổi học mới được **Thêm**, **Đổi lịch** hoặc bị **Hủy/Xoá**.
+- 🔔 **Hệ thống nhắc nhở đa mốc:** Tự động cài đặt 4 mốc thông báo cho từng buổi học (bạn có thể tự setting lại phần này nếu không thích):
   - Ngay tại thời điểm bắt đầu
   - Trước 30 phút
   - Trước 3 tiếng
   - Trước 1 ngày
 - 📧 **Thông báo qua Email:** Gửi mail ngay lập tức khi phát hiện lịch học bị thay đổi hoặc hệ thống gặp sự cố kết nối.
 - 📊 **Dashboard & Lịch sử log:** Tự động tạo trang quản lý trên Google Sheets để theo dõi trạng thái hệ thống và xem nhật ký thay đổi.
-- ⚡ **Khắc phục giới hạn 9KB:** Lưu trữ cơ sở dữ liệu trên Sheet ẩn thay vì `PropertiesService`, giúp hệ thống vận hành bền vững suốt học kỳ.
 
 ---
 
 ## 🚀 Hướng dẫn cài đặt
 
 ### Bước 1: Lấy URL Lịch iCal từ Moodle UIT
-
+#### Cách 1: Truy cập trực tiếp đường dẫn: 
+Truy cập theo đường dẫn sau [Calendar Export](https://courses.uit.edu.vn/calendar/export.php?)
+1. Chọn các thiết lập:
+   - **Sự kiện để xuất:** Tất cả sự kiện
+   - **Khoảng thời gian:** Chọn **Khoảng tùy chọn**, ví dụ: Khoảng tùy chọn (10/10/26 - 15/10/27)
+2. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link vừa tạo.
+#### Cách 2:
 1. Đăng nhập vào trang [Moodle UIT](https://courses.uit.edu.vn/).
-2. Trên thanh menu hoặc góc cá nhân, chọn **Lịch (Calendar)**.
-3. Kéo xuống cuối trang, nhấn vào nút **Xuất lịch (Export calendar)**.
+2. Trên phần lịch hiển thị bên phải, chọn **Quản lí theo dõi** xuất hiện ngay dưới lịch.
+3. Nhấn vào nút **Xuất lịch (Export calendar)**.
 4. Chọn các thiết lập:
-   - **Sự kiện để xuất:** Tất cả sự kiện (*All events*)
-   - **Khoảng thời gian:** Tùy chỉnh (*Custom*)
-5. Nhấn **Lấy URL lịch (Get calendar URL)** và sao chép đường link vừa tạo.
+   - **Sự kiện để xuất:** Tất cả sự kiện
+   - **Khoảng thời gian:** Chọn **Khoảng tùy chọn**, ví dụ: Khoảng tùy chọn (10/10/26 - 15/10/27)
+5. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link vừa tạo.
 
 ---
 
@@ -55,10 +60,10 @@ Tìm đoạn `CONFIG` ở đầu file mã nguồn và thiết lập thông số 
 
 ```javascript
 const CONFIG = {
-  CALENDAR_NAME: 'UIT - Lịch course',
-  LOG_SHEET_NAME: 'UIT Calendar Sync Log',
+  CALENDAR_NAME: 'UIT - Lịch course', //Tên lịch mà bạn muốn tạo
+  LOG_SHEET_NAME: 'UIT Calendar Sync Log', //Tên file sheet log của bạn
   NOTIFY_EMAIL: 'email_cua_ban@gm.uit.edu.vn', // Email nhận thông báo
-  ERROR_REMINDER_COUNT: 10,
+  ERROR_REMINDER_COUNT: 10, //Tần suất nhắc lại email thông báo lỗi khi hệ thống gặp sự cố liên tục, nhằm mục đích chống spam hộp thư.
   MOODLE_URL: 'DÁN_LINK_MOODLE_ICAL_CỦA_BẠN_VÀO_ĐÂY', 
   SYNC_INTERVAL: 15, // Chu kỳ đồng bộ (phút)
   REMINDERS: [0, 30, 180, 1440] // Các mốc thông báo (phút)
@@ -106,7 +111,8 @@ Nếu gặp sự cố trong quá trình vận hành, bạn có thể chạy các
 - Khi tải mã nguồn lên GitHub, hãy thay `MOODLE_URL` và `NOTIFY_EMAIL` bằng giá trị mặc định/hướng dẫn.
 
 ---
-
+## ⚠️ Lưu ý khác
+- Sheet "⚙️ Settings" chỉ có chức năng hiển thị, không thể điều chỉnh ở đây. Để điều chỉnh thông số bạn vui lòng chỉnh lại tại AppScript trong biến const CONFIG ở đầu đoạn code.
 ## 📝 Giấy phép (License)
 
-Dự án được chia sẻ cho mục đích học tập và sử dụng cá nhân tại UIT.
+Dự án được chia sẻ cho mục đích học tập và sử dụng cá nhân tại UIT - Trường đại học Công Nghệ Thông Tin.
