@@ -6,6 +6,7 @@ Tự động đồng bộ lịch bắt đầu và hạn nộp bài từ **Moodle
 ![Google Calendar](https://img.shields.io/badge/Google%20Calendar-4285F4?style=for-the-badge&logo=google-calendar&logoColor=white)
 ![Google Sheets](https://img.shields.io/badge/Google%20Sheets-34A853?style=for-the-badge&logo=google-sheets&logoColor=white)
 
+![Views](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fnguyenhungphongg%2FAuto-Sync-UIT-Course-to-your-calendar&count_bg=%237928CA&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Views&edge_flat=false)
 Bạn đã từng:
 
 - Quên deadline trên Moodle, nộp trễ không được và bị 0 điểm?
