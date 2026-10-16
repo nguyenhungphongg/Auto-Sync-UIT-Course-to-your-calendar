@@ -51,7 +51,7 @@ Mở trang [Calendar Export](https://courses.uit.edu.vn/calendar/export.php?), r
 
 1. Đăng nhập vào [Moodle UIT](https://courses.uit.edu.vn/).
 2. Ở phần lịch bên phải, chọn **Quản lí theo dõi** hiển thị ngay dưới lịch.
-3. Nhấn nút **Xuất lịch (Export calendar)**.
+3. Nhấn nút **Xuất lịch biểu**.
 4. Chọn các thiết lập như ở Cách 1.
 5. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link.
 
