@@ -79,7 +79,7 @@ Tìm đoạn `CONFIG` ở đầu file và thay bằng thông số của bạn:
 ```javascript
 const CONFIG = {
   CALENDAR_NAME: 'UIT - Lịch course',           // Tên lịch sẽ được tạo
-  LOG_SHEET_NAME: 'UIT Calendar Sync Log',      // Tên file Sheet lưu log
+  LOG_SHEET_NAME: 'UIT Calendar Sync Log',      // Tên file Sheet lưu log nếu bạn tạo trực tiếp bằng Appscript thay vì tạo Sheet rồi mới dùng Appscript
   NOTIFY_EMAIL: 'email_cua_ban@gm.uit.edu.vn',  // Email nhận thông báo
   ERROR_REMINDER_COUNT: 10,                     // Sau bao nhiêu lần lỗi liên tiếp thì gửi lại email báo lỗi (chống spam hộp thư)
   MOODLE_URL: 'DÁN_LINK_MOODLE_ICAL_CỦA_BẠN_VÀO_ĐÂY',
