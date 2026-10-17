@@ -1,6 +1,6 @@
 # 📅 Auto Sync UIT Course to your Calendar
 
-![Views](https://komarev.com/ghpvc/?username=nguyenhungphongg&repo=Auto-Sync-UIT-Course-to-your-calendar&label=Views&color=0e75dd&style=flat)
+[![Views](https://hits.sh/github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar.svg?extra=90&label=Views&color=7928ca)](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar)
 
 Tự động đồng bộ lịch bắt đầu và hạn nộp bài từ **Moodle UIT** ([courses.uit.edu.vn](https://courses.uit.edu.vn/), Trường Đại học Công nghệ Thông tin - ĐHQG-HCM) sang **Google Calendar**, kèm bảng điều khiển trên **Google Sheets** và email thông báo khi lịch thay đổi.
 
