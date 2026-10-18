@@ -129,6 +129,19 @@ Dự án thỉnh thoảng sẽ được nâng cấp để thêm tính năng ho�
 
 ---
 
+## ⚖️ So sánh: Dùng Script vs Thêm URL trực tiếp vào Google Calendar
+
+| Tiêu chí | 🔗 Thêm bằng URL trực tiếp (Google Calendar) | 🚀 Moodle Calendar Sync (Dự án này) |
+| :--- | :--- | :--- |
+| **Tần suất đồng bộ** | ⏱️ Chậm & Thất thường (**12 - 24 tiếng/lần**) | ⚡ **Tự động mỗi 15 phút** (gần như tức thời) |
+| **Thông báo khi đổi lịch/hủy buổi** | ❌ **Không có** (Lẳng lặng cập nhật trên lịch) | 🔔 **Gửi Email ngay lập tức** (Báo rõ chi tiết môn, phòng, ngày bị hủy/đổi) |
+| **Tự động đặt Lời nhắc (Reminders)** | ❌ Dùng mặc định, không tùy chỉnh được nhiều mốc | ⏰ **Tự động gắn chuỗi báo thức** (Lúc bắt đầu, trước 30p, 3h, 1 ngày) |
+| **Quản lý & Nhật ký (Log)** | ❌ Không có | 📊 **Có Dashboard & Log chi tiết** trên Google Sheet |
+| **Tránh đi nhầm phòng / bỏ buổi** | ⚠️ Hạn chế (Do cập nhật lịch quá chậm) | ✅ **Tối ưu tuyệt đối** (Luôn nắm bắt lịch học mới nhất) |
+| **Cách cài đặt** | Copy & dán URL | 1-Click Setup (`setupAndSync`) chạy 1 lần duy nhất |
+
+---
+
 ## 🆘 Khắc phục sự cố thường gặp
 
 Nếu gặp lỗi, hãy chuyển sang tab Apps Script và tự chạy các hàm hỗ trợ sau:
