@@ -989,7 +989,7 @@ function showMessage(text) {
 // =================================================
 function checkForUpdates() {
   try {
-    const url = 'https://raw.githubusercontent.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/main/version.json';
+    const url = 'https://raw.githubusercontent.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/refs/heads/main/version.json';
     
     const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (response.getResponseCode() === 200) {
