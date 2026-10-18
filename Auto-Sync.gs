@@ -1,28 +1,22 @@
 /*************************************************
  * MOODLE → GOOGLE CALENDAR SYNC (UNIVERSAL)
- * Version: 1.3
+ * Version: 1.3.1 (fixed duplicates + Vietnam timezone)
  *************************************************/
 
 // =================================================
-// 1. ⚙️ CẤU HÌNH CÁ NHÂN (NGƯỜI DÙNG THƯỜNG XUYÊN SỬA Ở ĐÂY)
+// 1. ⚙️ CẤU HÌNH CÁ NHÂN
 // =================================================
-// LƯU Ý: Sau lần chạy đầu tiên, hãy đổi Tên trường / Link Moodle / Email
-// trong tab "⚙️ Settings" của Google Sheet (sửa ở đây sẽ KHÔNG có tác dụng).
-// Riêng REMINDERS chỉ đọc từ code và chỉ áp dụng cho sự kiện tạo mới.
 const USER_CONFIG = {
-  UNIVERSITY_NAME: 'UIT', // Tên trường của bạn (VD: UIT, Bách Khoa, Kinh Tế...)
-  MOODLE_URL: 'ĐIỀN_LINK_MOODLE_CỦA_BẠN_VÀO_ĐÂY', // Dán link xuất lịch Moodle vào đây
-  NOTIFY_EMAIL: '', // Email nhận thông báo. Để trống sẽ dùng email tài khoản hiện tại
-  REMINDERS: [0, 30, 180, 1440] // Các mốc thời gian thông báo trước khi học (phút)
+  UNIVERSITY_NAME: 'UIT',
+  MOODLE_URL: 'ĐIỀN_LINK_MOODLE_CỦA_BẠN_VÀO_ĐÂY',
+  NOTIFY_EMAIL: '',
+  REMINDERS: [0, 30, 180, 1440]
 };
 
 // =================================================
-// 2. 🚀 CÁC HÀM THAO TÁC CHÍNH (ĐƯỢC ĐƯA LÊN ĐẦU ĐỂ DỄ TÌM)
+// 2. 🚀 CÁC HÀM THAO TÁC CHÍNH
 // =================================================
 
-/**
- * Nút 1: Cài đặt và đồng bộ lần đầu (Chỉ chạy 1 lần duy nhất khi mới bắt đầu)
- */
 function setupAndSync() {
   const triggers = ScriptApp.getProjectTriggers();
   if (triggers.some(t => t.getHandlerFunction() === 'syncMoodleCalendar')) {
@@ -42,7 +36,6 @@ function setupAndSync() {
     return;
   }
 
-  // Đánh dấu đang đồng bộ lần đầu: tạm không gửi email liệt kê hàng loạt sự kiện "Thêm"
   PropertiesService.getScriptProperties().setProperty('INITIAL_SYNC_PENDING', '1');
 
   const result = testSync();
@@ -57,9 +50,6 @@ function setupAndSync() {
   showMessage(msg);
 }
 
-/**
- * Nút 2: Đồng bộ ngay lập tức (Dùng khi muốn kéo lịch về ngay lập tức)
- */
 function syncNow() {
   showToast('Đang đồng bộ với Moodle...', '🔄 Đồng bộ');
   const result = testSync();
@@ -72,23 +62,16 @@ function syncNow() {
   }
 }
 
-/**
- * Hàm lõi đồng bộ, trả về kết quả (dùng cho setupAndSync và syncNow)
- */
 function testSync() {
   return syncMoodleCalendar();
 }
 
-/**
- * Nút 3: Cập nhật lại giao diện Dashboard và tab Settings trên Google Sheet
- */
 function updateDashboard() {
   createDashboard();
 }
 
 /**
- * Nút 4: Dọn dẹp thủ công các sự kiện bị nhân bản (trùng lịch)
- * Chỉ xóa bản KHÔNG được hệ thống theo dõi, nên không xóa nhầm các buổi học hợp lệ.
+ * Nút 4: Dọn dẹp thủ công các sự kiện bị nhân bản
  */
 function fixDuplicates() {
   const config = getActiveConfig();
@@ -99,7 +82,6 @@ function fixDuplicates() {
 
   showToast('Đang quét các sự kiện trùng lặp...', '🧹 Dọn dẹp');
 
-  // Các eventId mà Internal DB đang theo dõi → không được xóa
   const tracked = {};
   const stored = getEventDatabase();
   Object.keys(stored).forEach(uid => { if (stored[uid].eventId) tracked[stored[uid].eventId] = true; });
@@ -119,17 +101,20 @@ function fixDuplicates() {
     const group = groups[signature];
     if (group.length < 2) continue;
 
-    // Nếu không bản nào được theo dõi thì giữ lại bản đầu tiên
-    let keepFirst = !group.some(e => tracked[e.getId()]);
+    // Ưu tiên giữ bản đang được tracked, nếu không có thì giữ bản đầu tiên
+    let keepId = null;
+    for (const e of group) {
+      if (tracked[e.getId()]) { keepId = e.getId(); break; }
+    }
+    if (!keepId) keepId = group[0].getId();
 
     for (const evt of group) {
-      if (tracked[evt.getId()]) continue;
-      if (keepFirst) { keepFirst = false; continue; }
+      if (evt.getId() === keepId) continue;
       if (Date.now() - startedAt > SYSTEM_CONFIG.MAX_RUNTIME_MS) { stop = true; break; }
       try {
         withRetry(() => evt.deleteEvent());
         deletedCount++;
-        Utilities.sleep(500);
+        Utilities.sleep(400);
       } catch (e) {
         if (!isRateLimitError(e)) throw e;
         stop = true; break;
@@ -142,25 +127,16 @@ function fixDuplicates() {
   showMessage(msg);
 }
 
-/**
- * Nút 5: Tạo lịch trình tự động chạy ngầm (có thông báo)
- */
 function createTrigger() {
   installTrigger();
   showMessage('✅ Đã tạo thành công lịch tự động đồng bộ mỗi ' + SYSTEM_CONFIG.SYNC_INTERVAL + ' phút.');
 }
 
-/**
- * Tạo trigger (không hiện thông báo)
- */
 function installTrigger() {
   ScriptApp.getProjectTriggers().forEach(t => { if (t.getHandlerFunction() === 'syncMoodleCalendar') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('syncMoodleCalendar').timeBased().everyMinutes(SYSTEM_CONFIG.SYNC_INTERVAL).create();
 }
 
-/**
- * Tạo Menu hiển thị trực tiếp trên giao diện Google Sheet
- */
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('📅 Moodle Calendar Sync')
     .addItem('🚀 Cài đặt & đồng bộ lần đầu', 'setupAndSync')
@@ -172,12 +148,11 @@ function onOpen() {
     .addToUi();
 }
 
-
 // =================================================
-// 3. ⚙️ CẤU HÌNH HỆ THỐNG (KHÔNG CHỈNH SỬA)
+// 3. ⚙️ CẤU HÌNH HỆ THỐNG
 // =================================================
 const SYSTEM_CONFIG = {
-  CURRENT_VERSION: '1.3',
+  CURRENT_VERSION: '1.3.1',
   LOG_SHEET_NAME: 'Moodle Calendar Sync Log',
   HISTORY_SHEET_NAME: '📜 History',
   DB_SHEET_NAME: '⚙️ Internal DB',
@@ -195,9 +170,8 @@ const SYSTEM_CONFIG = {
   UPDATE_CACHE_SECONDS: 6 * 60 * 60
 };
 
-
 // =================================================
-// 4. 🛠️ CÁC HÀM XỬ LÝ NGẦM VÀ HỆ THỐNG
+// 4. 🛠️ CÁC HÀM XỬ LÝ NGẦM
 // =================================================
 
 function getSafeConfig() {
@@ -244,10 +218,16 @@ function getActiveConfig() {
   return config;
 }
 
+/** FIXED: luôn tạo calendar với timezone Việt Nam */
 function getOrCreateCalendar(config) {
   const calendars = CalendarApp.getCalendarsByName(config.CALENDAR_NAME);
   if (calendars.length > 0) return calendars[0];
-  return CalendarApp.createCalendar(config.CALENDAR_NAME, { description: 'Đồng bộ tự động từ Moodle ' + config.UNIVERSITY_NAME });
+
+  // Tạo mới với timezone Asia/Ho_Chi_Minh
+  return CalendarApp.createCalendar(config.CALENDAR_NAME, {
+    description: 'Đồng bộ tự động từ Moodle ' + config.UNIVERSITY_NAME,
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
 }
 
 function getOrCreateInternalDBSheet() {
@@ -262,7 +242,12 @@ function getEventDatabase() {
   const lastRow = sheet.getLastRow();
   if (lastRow < 1) return {};
   const json = sheet.getRange(1, 1, lastRow, 1).getValues().map(row => row[0]).join('');
-  return json ? JSON.parse(json) : {};
+  try {
+    return json ? JSON.parse(json) : {};
+  } catch (e) {
+    Logger.log('Internal DB corrupt, reset: ' + e);
+    return {};
+  }
 }
 
 function saveEventDatabase(data) {
@@ -335,7 +320,12 @@ function runSync(config) {
   const props = PropertiesService.getScriptProperties();
   const isInitial = props.getProperty('INITIAL_SYNC_PENDING') === '1';
 
-  const response = UrlFetchApp.fetch(config.MOODLE_URL, { method: 'get', muteHttpExceptions: true, followRedirects: true, headers: { 'User-Agent': 'Moodle-Calendar-Sync/' + SYSTEM_CONFIG.CURRENT_VERSION } });
+  const response = UrlFetchApp.fetch(config.MOODLE_URL, {
+    method: 'get',
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: { 'User-Agent': 'Moodle-Calendar-Sync/' + SYSTEM_CONFIG.CURRENT_VERSION }
+  });
 
   if (response.getResponseCode() !== 200) throw new Error('Moodle trả về HTTP ' + response.getResponseCode());
   const ics = response.getContentText('UTF-8');
@@ -353,10 +343,12 @@ function runSync(config) {
 
   const calendar = getOrCreateCalendar(config);
   const stored = getEventDatabase();
-  const currentUIDs = {}; events.forEach(e => { if (e.uid) currentUIDs[e.uid] = true; });
+  const currentUIDs = {};
+  events.forEach(e => { if (e.uid) currentUIDs[e.uid] = true; });
 
   let added = 0, updated = 0, deleted = 0, opsDone = 0, pending = 0, rateLimited = false;
-  const changes = []; const startedAt = Date.now();
+  const changes = [];
+  const startedAt = Date.now();
   const hasBudget = () => !rateLimited && opsDone < SYSTEM_CONFIG.MAX_OPS_PER_RUN && (Date.now() - startedAt) < SYSTEM_CONFIG.MAX_RUNTIME_MS;
   const pause = () => Utilities.sleep(SYSTEM_CONFIG.OP_DELAY_MS);
 
@@ -372,18 +364,33 @@ function runSync(config) {
 
       try {
         if (!old) {
-          const googleEvent = createGoogleEvent(calendar, data, config);
-          const record = makeRecord(googleEvent, signature, data, false);
-          stored[data.uid] = record;
-          added++; opsDone++;
-          changes.push({ type: 'ADDED', event: data, details: 'Buổi học mới.' });
-          if (!ensureReminders(googleEvent, record, config)) { rateLimited = true; pending++; }
+          // === FIXED: tìm event đã tồn tại trước khi tạo mới (chống nhân bản) ===
+          let googleEvent = findExistingEvent(calendar, data);
+          if (googleEvent) {
+            // Đã có sẵn → tái sử dụng, chỉ update nếu cần
+            const oldData = null;
+            updateGoogleEvent(googleEvent, data, oldData, config);
+            const record = makeRecord(googleEvent, signature, data, false);
+            stored[data.uid] = record;
+            updated++; opsDone++;
+            changes.push({ type: 'UPDATED', event: data, details: 'Tái sử dụng event đã tồn tại (chống trùng).' });
+            if (!ensureReminders(googleEvent, record, config)) { rateLimited = true; pending++; }
+          } else {
+            googleEvent = createGoogleEvent(calendar, data, config);
+            const record = makeRecord(googleEvent, signature, data, false);
+            stored[data.uid] = record;
+            added++; opsDone++;
+            changes.push({ type: 'ADDED', event: data, details: 'Buổi học mới.' });
+            if (!ensureReminders(googleEvent, record, config)) { rateLimited = true; pending++; }
+          }
           pause(); continue;
         }
 
         const googleEvent = calendar.getEventById(old.eventId);
         if (!googleEvent) {
-          const recreated = createGoogleEvent(calendar, data, config);
+          // Event bị xóa thủ công → tạo lại, nhưng vẫn check trùng
+          let recreated = findExistingEvent(calendar, data);
+          if (!recreated) recreated = createGoogleEvent(calendar, data, config);
           const record = makeRecord(recreated, signature, data, false);
           stored[data.uid] = record;
           added++; opsDone++;
@@ -400,7 +407,6 @@ function runSync(config) {
           if (record.rem === false && !ensureReminders(googleEvent, record, config)) { rateLimited = true; pending++; }
           pause();
         } else if (needsReminders) {
-          // Sự kiện đã đồng bộ nhưng lần trước chưa gắn được nhắc nhở → thử lại
           if (ensureReminders(googleEvent, old, config)) { opsDone++; } else { rateLimited = true; pending++; }
           pause();
         }
@@ -411,6 +417,7 @@ function runSync(config) {
       }
     }
 
+    // Xóa những event không còn trên Moodle
     for (const uid of Object.keys(stored)) {
       if (currentUIDs[uid]) continue;
       if (!hasBudget()) { pending++; continue; }
@@ -437,7 +444,6 @@ function runSync(config) {
 
   if (changes.length > 0) {
     try { writeLogs(changes); } catch (e) {}
-    // Lần đồng bộ đầu tiên không gửi email liệt kê hàng loạt sự kiện "Thêm"
     if (!isInitial) { try { sendChangeNotification(changes, config); } catch (e) { Logger.log('Không gửi được email thông báo: ' + e); } }
   }
   if (isInitial && pending === 0 && !rateLimited) props.deleteProperty('INITIAL_SYNC_PENDING');
@@ -463,6 +469,21 @@ function runSync(config) {
   return { ok: true, pending: pending, summary: summary };
 }
 
+/** NEW: Tìm event đã tồn tại trong calendar theo title + start time (chống nhân bản) */
+function findExistingEvent(calendar, data) {
+  if (!data.start) return null;
+  // Tìm trong khoảng ±2 phút quanh thời điểm bắt đầu
+  const from = new Date(data.start.getTime() - 2 * 60 * 1000);
+  const to   = new Date(data.start.getTime() + 2 * 60 * 1000);
+  const candidates = calendar.getEvents(from, to);
+  for (const evt of candidates) {
+    if (evt.getTitle() === data.title && Math.abs(evt.getStartTime().getTime() - data.start.getTime()) < 60000) {
+      return evt;
+    }
+  }
+  return null;
+}
+
 function isRateLimitError(e) { return /too many|quá nhiều|rate limit|limit exceeded/i.test(String(e)); }
 function withRetry(fn) {
   let wait = SYSTEM_CONFIG.RETRY_WAIT_MS;
@@ -471,19 +492,12 @@ function withRetry(fn) {
   }
 }
 
-/**
- * rem === false  → sự kiện chưa gắn được nhắc nhở (sẽ thử lại ở lượt sau)
- * rem === true / undefined → đã xong (undefined = bản ghi từ phiên bản cũ)
- */
 function makeRecord(evt, sig, d, rem) {
   const record = { eventId: evt.getId(), signature: sig, data: serializeEvent(d) };
   if (rem !== undefined) record.rem = rem;
   return record;
 }
 
-/**
- * Gắn nhắc nhở và đánh dấu vào bản ghi. Trả về false nếu bị giới hạn API.
- */
 function ensureReminders(googleEvent, record, config) {
   try {
     applyReminders(googleEvent, config);
@@ -539,7 +553,7 @@ function handleSyncError(e, config) {
 function sendRecoveryNotification(c, config) { if (config.NOTIFY_EMAIL) MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `✅ Hệ thống đã phục hồi`, body: `Hoạt động trở lại sau ${c} lỗi.` }); }
 
 // -------------------------------------------------
-// Đọc file ICS
+// Đọc file ICS (giữ nguyên)
 // -------------------------------------------------
 function parseICS(ics) {
   const lines = ics.replace(/\r?\n[ \t]/g, '').split(/\r?\n/);
@@ -552,7 +566,6 @@ function parseICS(ics) {
       if (current) {
         const start = parseICSTime(current.DTS_V, current.DTS_T);
         let end = parseICSTime(current.DTE_V, current.DTE_T);
-        // Thiếu DTEND: sự kiện cả ngày kéo dài 24h, sự kiện có giờ coi như kết thúc cùng lúc bắt đầu
         if (start && !end) end = isDateOnly(current.DTS_V) ? new Date(start.getTime() + 86400000) : start;
         const e = { uid: current.UID||'', title: unescapeICS(current.SUMMARY||''), start: start, end: end, location: unescapeICS(current.LOCATION||''), description: unescapeICS(current.DESCRIPTION||'') };
         if (e.start && e.end) events.push(e);
@@ -561,7 +574,6 @@ function parseICS(ics) {
     }
     if (!current) return;
 
-    // Bỏ qua mọi thuộc tính nằm trong VALARM (tránh ghi đè DESCRIPTION của sự kiện)
     if (marker === 'BEGIN:VALARM') { inAlarm = true; return; }
     if (marker === 'END:VALARM') { inAlarm = false; return; }
     if (inAlarm) return;
@@ -585,7 +597,7 @@ function parseICSTime(v, tz) {
 
   const zone = tz || 'Asia/Ho_Chi_Minh';
 
-  m = v.match(/^(\d{4})(\d{2})(\d{2})$/); // Sự kiện cả ngày
+  m = v.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (m) return Utilities.parseDate(`${m[1]}-${m[2]}-${m[3]} 00:00:00`, zone, 'yyyy-MM-dd HH:mm:ss');
 
   m = v.match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})(\d{2})(\d{2})?$/);
@@ -595,7 +607,7 @@ function parseICSTime(v, tz) {
 function unescapeICS(v) { return String(v).replace(/\\([nN,;\\])/g, (m, c) => (c === 'n' || c === 'N') ? '\n' : c); }
 
 // -------------------------------------------------
-// Dashboard
+// Dashboard (giữ nguyên phần còn lại)
 // -------------------------------------------------
 function createDashboard() {
   const ss = getLogSpreadsheet();
@@ -630,7 +642,6 @@ function createDashboard() {
   let vRow = ['Phiên bản hiện tại', `v${SYSTEM_CONFIG.CURRENT_VERSION} (Bản mới nhất)`];
   if (up.hasUpdate) vRow = ['CẬP NHẬT MỚI', `🔥 Có bản v${up.remoteVersion}: ${up.message}. Lên GitHub lấy code đè vào nhé!🔥`];
 
-  // Reset định dạng vùng thông tin để màu cảnh báo cũ không bị kẹt lại
   dashboard.getRange('A3:B9').setBackground(null).setFontColor(null).setFontWeight('normal');
 
   dashboard.getRange('A3:B9').setValues([
@@ -662,21 +673,11 @@ function createDashboard() {
   if (evRows.length) eventsSheet.getRange(2, 1, evRows.length, 4).setValues(evRows);
 }
 
-// -------------------------------------------------
-// Thông báo cho người dùng
-// -------------------------------------------------
-
-/**
- * Hộp thoại thông báo (khi chạy từ menu). Khi chạy ngầm bằng trigger không có giao diện nên chỉ ghi log.
- */
 function showMessage(t) {
   Logger.log(t);
   try { SpreadsheetApp.getUi().alert(t); } catch (e) {}
 }
 
-/**
- * Thông báo nhỏ ở góc màn hình (không chặn thao tác)
- */
 function showToast(t, title) {
   Logger.log(t);
   try {
@@ -685,9 +686,6 @@ function showToast(t, title) {
   } catch (e) {}
 }
 
-// -------------------------------------------------
-// Kiểm tra phiên bản mới
-// -------------------------------------------------
 function isNewerVersion(remote, local) {
   const a = String(remote).split('.').map(Number);
   const b = String(local).split('.').map(Number);
