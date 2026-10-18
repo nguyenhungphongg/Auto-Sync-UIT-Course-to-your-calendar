@@ -1,165 +1,147 @@
-# 📅 Auto Sync UIT Course to your Calendar
+# 📅 Auto Sync Moodle Course to your Calendar
 
-[![Views](https://hits.sh/github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar.svg?extra_count=85&label=Views&color=7928ca)](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar)
+Tự động đồng bộ lịch bắt đầu và hạn nộp bài từ **Moodle UIT** ([courses.uit.edu.vn](https://courses.uit.edu.vn/)) hoặc **BẤT KỲ HỆ THỐNG MOODLE NÀO KHÁC** sang **Google Calendar**. Kèm theo bảng điều khiển (Dashboard) trên Google Sheets và tính năng tự động nhắc nhở qua Email.
 
-Tự động đồng bộ lịch bắt đầu và hạn nộp bài từ **Moodle UIT** ([courses.uit.edu.vn](https://courses.uit.edu.vn/), Trường Đại học Công nghệ Thông tin - ĐHQG-HCM) sang **Google Calendar**, kèm bảng điều khiển trên **Google Sheets** và email thông báo khi lịch thay đổi.
+[![Views](https://hits.sh/github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar.svg?extra_count=150&label=Views&color=7928ca)](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar)
 
 ![Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Google Calendar](https://img.shields.io/badge/Google%20Calendar-4285F4?style=for-the-badge&logo=google-calendar&logoColor=white)
 ![Google Sheets](https://img.shields.io/badge/Google%20Sheets-34A853?style=for-the-badge&logo=google-sheets&logoColor=white)
 
 Bạn đã từng:
-
 - Quên deadline trên Moodle, nộp trễ không được và bị 0 điểm?
 - Lười đăng nhập vào web của trường mỗi ngày chỉ để xem có deadline nào mới?
 
-Dự án nhỏ này sẽ tự động đồng bộ lịch Moodle về Google Calendar và đặt thông báo nhắc cho bạn. Khi giảng viên đăng lịch mới, bạn sẽ nhận email và lịch được cập nhật tự động.
+Dự án nhỏ này sẽ giúp bạn đồng bộ toàn bộ sự kiện từ Moodle về Google Calendar hoàn toàn tự động.
 
-<img width="1628" height="930" alt="Tự động đồng bộ deadline trên Moodle UIT vào Google Calendar" src="https://github.com/user-attachments/assets/96de3420-fd6f-408f-abe2-495363f4d883" />
+<!-- Hai ảnh minh họa được đặt cạnh nhau để README gọn hơn trên GitHub. -->
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="https://github.com/user-attachments/assets/96de3420-fd6f-408f-abe2-495363f4d883" alt="Tự động đồng bộ deadline vào Google Calendar" width="100%" />
+      <sub>Tự động cập nhật deadline qua Google Calendar</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="https://github.com/user-attachments/assets/669d7de4-97f9-4457-85a3-ae259fa06e7b" alt="Thông báo khi lịch Moodle thay đổi" width="100%" />
+      <sub>Thông báo khi giảng viên thêm, sửa hoặc xóa lịch deadline</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
 ## ✨ Tính năng nổi bật
 
-- 🔄 **Đồng bộ tự động:** kiểm tra và cập nhật lịch mỗi 15 phút, chạy trên máy chủ của Google nên không cần bật máy tính.
-- 🎯 **Phát hiện thay đổi:** nhận biết khi có lịch mới được **thêm**, **đổi lịch** hoặc bị **hủy/xóa**.
-- 🔔 **Nhắc nhở nhiều mốc:** mặc định 4 mốc cho mỗi lịch (có thể tự chỉnh):
-  - Ngay thời điểm bắt đầu
-  - Trước 30 phút
-  - Trước 3 tiếng
-  - Trước 1 ngày
-
-  <img width="498" height="302" alt="Các mốc nhắc nhở trên Google Calendar" src="https://github.com/user-attachments/assets/87605f4e-e975-4bb5-8658-6183517ea289" />
-
-- 📧 **Thông báo qua email:** gửi mail khi lịch thay đổi hoặc hệ thống gặp sự cố kết nối.
-- 📊 **Dashboard và nhật ký:** tự tạo trang quản lý trên Google Sheets để theo dõi trạng thái và xem lịch sử thay đổi.
+- 🔄 **Đồng bộ ngầm tự động:** Cập nhật lịch mỗi 15 phút trên máy chủ Google (không cần treo máy).
+- 🎯 **Phát hiện thông minh:** Tự động thêm lịch mới, đổi lịch khi giảng viên dời ngày và xóa lịch khi bị hủy.
+- 🔔 **Nhắc nhở tự động:** Mặc định báo trước 4 mốc (ngay lúc bắt đầu, 30 phút, 3 tiếng, 1 ngày).
+- 📊 **Dashboard quản lý trực quan:** Tự động tạo trang tính trên Google Sheets để theo dõi số lượng sự kiện và lịch sử đồng bộ.
+- 🚀 **Chống dính spam:** Tích hợp cơ chế thông minh chống vượt hạn mức (Rate Limit) của Google khi có quá nhiều lịch.
+- 💡 **Thông báo cập nhật (Mới):** Khi có tính năng mới hoặc vá lỗi, Dashboard sẽ tự động báo cho bạn biết để vào lấy code mới!
 
 ---
 
-## 🚀 Hướng dẫn cài đặt
+## 🚀 Hướng dẫn cài đặt (Chỉ mất 2 phút)
 
-### Bước 1: Lấy URL lịch iCal từ Moodle UIT
+### Bước 1: Lấy URL lịch iCal từ Moodle
 
-**Cách 1: Truy cập trực tiếp**
+**Dành cho sinh viên UIT:**
+1. Mở trang [Calendar Export UIT](https://courses.uit.edu.vn/calendar/export.php?).
+2. Chọn **Tất cả sự kiện** và khoảng thời gian **Khoảng tùy chọn** (ví dụ 10/10/2026 - 15/10/2027).
+3. Nhấn **Lấy địa chỉ mạng của lịch** và copy đường link đó.
 
-Mở trang [Calendar Export](https://courses.uit.edu.vn/calendar/export.php?), rồi:
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/5630cfa2-e118-4683-8d12-a40fa1583572" alt="Hướng dẫn xuất lịch iCalendar từ Moodle UIT" width="650" />
+</p>
 
-1. Chọn các thiết lập:
-   - **Sự kiện để xuất:** Tất cả sự kiện
-   - **Khoảng thời gian:** chọn **Khoảng tùy chọn**, ví dụ 10/10/26 - 15/10/27 (nên chọn đủ dài để bao phủ cả học kỳ).
-2. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link vừa tạo.
+**Dành cho sinh viên trường khác:**
+1. Đăng nhập vào hệ thống Moodle / LMS của trường bạn.
+   > **Mẹo:** Thông thường, các trường sử dụng Moodle sẽ có đường dẫn xuất lịch tương tự `https://[moodle-cua-ban]/calendar/export.php`.
+   > Ví dụ: `https://lms.hcmut.edu.vn/calendar/export.php`.
+2. Tìm đến mục **Lịch (Calendar)** → **Xuất lịch (Export calendar)**. Nếu hệ thống không cho xuất hoặc lấy link lịch, có thể trường bạn không hỗ trợ tính năng này và dự án sẽ không sử dụng được.
+3. Thiết lập thông số tương tự như trên và lấy link.
 
-**Cách 2: Từ giao diện Moodle**
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/3950222d-1966-4157-9e47-db5f63745f6f" alt="Hướng dẫn xuất lịch từ hệ thống Moodle khác" width="700" />
+</p>
 
-1. Đăng nhập vào [Moodle UIT](https://courses.uit.edu.vn/).
-2. Ở phần lịch bên phải, chọn **Quản lí theo dõi** hiển thị ngay dưới lịch.
-3. Nhấn nút **Xuất lịch biểu**.
-4. Chọn các thiết lập như ở Cách 1.
-5. Nhấn **Lấy địa chỉ mạng của lịch** và sao chép đường link.
+> ⚠️ **Lưu ý an toàn:** Link này chứa mã xác thực cá nhân (`authtoken`). **Không chia sẻ link này công khai cho người khác.**
 
-<img width="966" height="802" alt="Lấy địa chỉ mạng của lịch trên Moodle UIT" src="https://github.com/user-attachments/assets/7fb16ba0-4ff9-48a3-9e1d-64fb67b96312" />
+### Bước 2: Tạo dự án Apps Script
 
-> ⚠️ Link này chứa mã xác thực cá nhân của bạn. Xem phần [Lưu ý an toàn](#️-lưu-ý-an-toàn) bên dưới.
-
----
-
-### Bước 2: Tạo dự án Google Apps Script (làm trên máy tính)
-
-1. Truy cập [Google Sheets](https://sheets.google.com/) và tạo một trang tính mới.
+1. Mở [Google Sheets](https://sheets.new/) để tạo một bảng tính mới (nên tạo trong một thư mục dễ tìm).
 2. Trên thanh công cụ, chọn **Tiện ích mở rộng (Extensions)** → **Apps Script**.
-3. Xóa toàn bộ mã mặc định trong tệp `Mã.gs` (hoặc `Code.gs`).
-4. Mở [mã nguồn dự án](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/blob/main/Auto-Sync-UIT-Course-to-your-calendar.gs), nhấn biểu tượng Copy rồi dán vào Apps Script.
+3. Xóa đoạn code mặc định có sẵn.
+4. Tùy thuộc vào trường của bạn, copy toàn bộ code và dán vào:
+   - 🔵 **Sinh viên UIT:** Copy code tại file [`UIT-Sync.gs`](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/blob/main/UIT-Sync.gs).
+   - 🟢 **Sinh viên trường khác:** Copy code tại file [`Global-Sync.gs`](https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/blob/main/Global-Sync.gs).
 
-<img width="1617" height="492" alt="Sao chép mã nguồn từ GitHub" src="https://github.com/user-attachments/assets/122555a5-f4b1-4c6d-a710-2f9f80649259" />
+### Bước 3: Cấu hình mã nguồn
 
----
-
-### Bước 3: Cấu hình
-
-Tìm đoạn `CONFIG` ở đầu file và thay bằng thông số của bạn:
+Tìm đoạn `CONFIG` ở ngay đầu code và điền thông tin của bạn vào:
 
 ```javascript
 const CONFIG = {
-  CALENDAR_NAME: 'UIT - Lịch course',           // Tên lịch sẽ được tạo
-  LOG_SHEET_NAME: 'UIT Calendar Sync Log',      // Tên file Sheet lưu log nếu bạn tạo trực tiếp bằng Appscript thay vì tạo Sheet rồi mới dùng Appscript
-  NOTIFY_EMAIL: 'email_cua_ban@gm.uit.edu.vn',  // Email nhận thông báo
-  ERROR_REMINDER_COUNT: 10,                     // Sau bao nhiêu lần lỗi liên tiếp thì gửi lại email báo lỗi (chống spam hộp thư)
-  MOODLE_URL: 'DÁN_LINK_MOODLE_ICAL_CỦA_BẠN_VÀO_ĐÂY',
-  SYNC_INTERVAL: 15,                            // Chu kỳ đồng bộ (phút)
-  REMINDERS: [0, 30, 180, 1440]                 // Các mốc nhắc trước giờ bắt đầu (phút): ngay lúc bắt đầu, 30 phút, 3 giờ, 1 ngày
-  // Muốn tắt nhắc nhở thì để trống: REMINDERS: []
+  CURRENT_VERSION: 1.2, // Thêm dòng này để đánh dấu phiên bản hiện tại
+  CALENDAR_NAME: 'UIT - Lịch course', // Tên lịch mà bạn muốn tạo
+  LOG_SHEET_NAME: 'UIT Calendar Sync Log', // Tên Google Sheet log. Nếu script đã gắn sẵn trong một Sheet thì dùng luôn Sheet đó; chỉ tạo Sheet mới khi dùng Apps Script độc lập.
+  NOTIFY_EMAIL: 'email_cua_ban@gm.uit.edu.vn', // Email nhận thông báo. Để trống '' thì dùng email của tài khoản Google đang chạy script.
+  ERROR_REMINDER_COUNT: 10, // Tần suất nhắc lại email thông báo lỗi khi hệ thống gặp sự cố liên tục, nhằm chống spam hộp thư.
+  MOODLE_URL: 'DÁN_LINK_MOODLE_ICAL_CỦA_BẠN_VÀO_ĐÂY', // Link xuất lịch Moodle (có chứa authtoken, KHÔNG đăng công khai).
+  SYNC_INTERVAL: 15, // Chu kỳ đồng bộ (phút), chỉ nhận 1, 5, 10, 15 hoặc 30.
+  // Chu kỳ đồng bộ càng ngắn thì mức sử dụng hạn mức trong ngày càng cao; có thể chạm hạn mức của Google.
+  REMINDERS: [0, 30, 180, 1440], // Các mốc nhắc trước (phút): đúng thời điểm, 30 phút, 3 giờ và 1 ngày.
+  // Nếu không muốn nhận thông báo, đặt REMINDERS: []
 };
 ```
 
-> 💡 Chu kỳ đồng bộ càng ngắn thì càng tốn hạn mức (quota) trong ngày của Google. Nếu vượt hạn mức, script sẽ tạm dừng cho đến khi hạn mức được làm mới.
+### Bước 4: Chạy cài đặt
+
+1. Ở thanh công cụ phía trên cùng, chọn hàm **`setupAndSync`** (thay vì `myFunction`).
+2. Bấm **▶️ Chạy (Run)**.
+3. Cấp quyền truy cập cho script (chỉ hỏi ở lần đầu):
+   - Chọn **Xem lại quyền** → **Tài khoản của bạn** → **Nâng cao (Advanced)** → **Đi tới...** → **Cho phép**.
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/81bc50ca-92ca-4cf2-bf35-9f4f19e39c69" alt="Cấp quyền cho Google Apps Script" width="550" />
+</p>
+
+4. Đợi một lát, thông báo thành công sẽ hiện ở góc dưới màn hình Google Sheets của bạn.
+
+**Vậy là xong! Hệ thống đã tự động lên lịch chạy ngầm mỗi 15 phút.**
+
+> **Nếu khi chạy, hệ thống báo lỗi “Bạn đang tạo hoặc xóa quá nhiều lịch”, hãy chạy tiếp hàm `syncUITCalendar`. Nếu vẫn báo lỗi, Google có thể đang tạm chặn thao tác tạo lịch. Bạn có thể để script tự đồng bộ trong nền ở chu kỳ tiếp theo.**
 
 ---
 
-### Bước 4: Khởi tạo và cấp quyền
+## 🛠 Cập nhật phiên bản mới
 
-1. Chọn hàm **`setup`** trong danh sách hàm trên thanh công cụ và bấm **Chạy (Run)**.
+Dự án thỉnh thoảng sẽ được nâng cấp để thêm tính năng hoặc sửa lỗi (ví dụ: sửa lỗi tràn dữ liệu...).
 
-   <img width="482" height="75" alt="Chạy hàm setup" src="https://github.com/user-attachments/assets/9c12f697-57bd-4648-b9db-efbec352598d" />
+**Khi có bản cập nhật, dòng trạng thái trên tab `🏠 Dashboard` trong Google Sheets sẽ tự động chuyển sang nền vàng, chữ đỏ để báo hiệu. Nếu là bản cập nhật quan trọng (Urgent), hệ thống cũng sẽ gửi email thông báo.**
 
-2. Cấp quyền cho script (chỉ lần đầu):
-   - Chọn **Xem lại quyền (Review Permissions)**.
-   - Chọn tài khoản Google của bạn.
-   - Nhấn **Nâng cao (Advanced)** → **Đi tới... (Go to...)**.
-   - Nhấn **Cho phép (Allow)**.
-
-   > Google hiển thị cảnh báo này vì script chưa qua xác minh của Google. Mã nguồn hoàn toàn công khai, bạn có thể đọc trước khi chạy.
-
-3. Chọn hàm **`testSync`** và bấm **Chạy** để đồng bộ lần đầu.
-
-   <img width="465" height="65" alt="Chạy hàm testSync" src="https://github.com/user-attachments/assets/f643f3a2-5cfb-4c63-8a98-51a9dbca58d2" />
+**Cách cập nhật:**
+1. Vào repository GitHub này và copy toàn bộ mã mới nhất.
+2. Mở Apps Script hiện tại, xóa mã cũ và dán mã mới vào.
+3. Chỉnh lại biến `MOODLE_URL` thành link lịch của bạn.
+4. Chạy hàm `testSync()`. Dòng cảnh báo đỏ sẽ tự biến mất!
 
 ---
 
-### Bước 5: Bật đồng bộ tự động
+## 🆘 Khắc phục sự cố thường gặp
 
-1. Chọn hàm **`createTrigger`** và bấm **Chạy**. Từ đây script sẽ tự chạy ngầm theo chu kỳ đã đặt (mặc định 15 phút).
+Nếu gặp lỗi, hãy chuyển sang tab Apps Script và tự chạy các hàm hỗ trợ sau:
 
-   <img width="500" height="67" alt="Chạy hàm createTrigger" src="https://github.com/user-attachments/assets/7a5cb178-dd4c-4e1e-aa63-e91d7564b86a" />
-
-2. *(Tùy chọn)* Chọn hàm **`createSpreadsheetOpenTrigger`** và bấm **Chạy** để thêm menu điều khiển nhanh ngay trên giao diện Google Sheets.
-
-   <img width="711" height="292" alt="Menu điều khiển trên Google Sheets" src="https://github.com/user-attachments/assets/72428c5c-2aa3-44ca-9d8d-b3852bb113e6" />
-
----
-
-## 🛠️ Công cụ hỗ trợ và xử lý lỗi
-
-Nếu gặp sự cố, bạn có thể chạy các hàm sau trong Apps Script:
-
-| Hàm | Tác dụng |
+| Hàm trong Script | Tác dụng |
 | :--- | :--- |
-| `testSync()` | Chạy đồng bộ ngay lập tức. |
-| `updateDashboard()` | Cập nhật lại Dashboard trên Google Sheets. |
-| `fixDuplicates()` | Xóa các lịch bị trùng lặp và làm sạch dữ liệu để đồng bộ lại từ đầu. |
-| `updateRemindersForExistingEvents()` | Áp dụng các mốc nhắc mới cho toàn bộ sự kiện đang có trên Google Calendar. |
-| `systemStatus()` | In nhật ký kiểm tra trạng thái hoạt động của script. |
+| `fixDuplicates()` | Nếu lịch có sự kiện bị tạo trùng, chạy hàm này để quét và tự dọn dẹp các sự kiện thừa. |
+| `testSync()` | Chạy đồng bộ thủ công ngay lập tức để kiểm tra xem lỗi đã hết chưa. |
+| `updateDashboard()` | Vẽ lại giao diện Bảng điều khiển nếu lỡ tay làm hỏng định dạng. |
 
----
+**Lỗi: “Bạn đang tạo hoặc xóa quá nhiều lịch...”**
 
-## 🗑️ Gỡ cài đặt
+Đây là cơ chế bảo vệ chống spam của Google. Nếu có quá nhiều deadline (hàng trăm sự kiện), Google có thể tạm chặn việc tạo lịch. Hệ thống được thiết kế để tự động chia nhỏ công việc, ghi nhớ tiến trình và chạy bù phần còn lại ở chu kỳ tiếp theo.
 
-1. Trong Apps Script, mở mục **Trình kích hoạt (Triggers)** ở thanh bên trái và xóa các trigger của dự án.
-2. Xóa lịch đã tạo trong Google Calendar (và Google Sheet log nếu không cần nữa).
+## 📝 Bản quyền và Đóng góp
 
----
-
-## ⚠️ Lưu ý an toàn
-
-- **Không chia sẻ công khai** đường link `MOODLE_URL`. Link chứa `authtoken` cá nhân, ai có link đều có thể xem lịch học của bạn.
-- Khi đưa mã nguồn lên GitHub (ví dụ fork repo), hãy để `MOODLE_URL` và `NOTIFY_EMAIL` ở giá trị mặc định, không commit giá trị thật.
-- Script cần quyền truy cập Google Calendar, Google Sheets và Gmail (để gửi thông báo). Bạn nên đọc qua mã nguồn trước khi chạy.
-
-## 📌 Lưu ý khác
-
-- Sheet **"⚙️ Settings"** chỉ để hiển thị. Muốn đổi thông số, hãy chỉnh trong biến `CONFIG` ở đầu code Apps Script.
-- Google Apps Script có giới hạn số lần chạy và số email mỗi ngày. Nếu bạn gặp tình trạng script dừng, hãy thử tăng `SYNC_INTERVAL`.
-- Đây là dự án cá nhân, không liên kết chính thức với nhà trường.
-
-## 📝 Giấy phép
-
-Dự án được chia sẻ cho mục đích học tập và sử dụng cá nhân tại UIT - Trường Đại học Công nghệ Thông tin.
+Dự án được viết và tinh chỉnh dựa trên chuẩn xuất iCal nhằm tối ưu trải nghiệm cho sinh viên Trường Đại học Công nghệ Thông tin (UIT) và cộng đồng sinh viên nói chung. Mọi đóng góp (Pull Request / Issues) đều được chào đón!
