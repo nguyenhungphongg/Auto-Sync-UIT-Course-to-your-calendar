@@ -23,9 +23,23 @@
 
 <div align="center">
 
-<table>
+<table align="center" width="100%">
+  <!-- Hàng tiêu đề cho từng cột -->
   <tr>
-    <td valign="top" width="33%">
+    <td valign="top" width="33%" style="font-weight: bold; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+      🚀 Bắt Đầu
+    </td>
+    <td valign="top" width="33%" style="font-weight: bold; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+      ⚙️ Vận Hành & Sử Dụng
+    </td>
+    <td valign="top" width="33%" style="font-weight: bold; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
+      🛡️ Hệ Thống & Hỗ Trợ
+    </td>
+  </tr>
+  
+  <!-- Hàng nội dung chính -->
+  <tr>
+    <td valign="top" width="33%" style="padding-top: 8px;">
       <a href="#gioi-thieu">🎯 Giới thiệu</a><br/>
       <a href="#anh-minh-hoa">🖼️ Ảnh minh họa</a><br/>
       <a href="#tinh-nang">✨ Tính năng</a><br/>
@@ -33,7 +47,7 @@
       <a href="#cai-dat">🚀 Cài đặt</a><br/>
       <a href="#su-dung">🕹️ Sử dụng</a>
     </td>
-    <td valign="top" width="33%">
+    <td valign="top" width="33%" style="padding-top: 8px;">
       <a href="#cau-hinh">🔧 Cấu hình</a><br/>
       <a href="#cac-tab">🗂️ Các tab trong Google Sheet</a><br/>
       <a href="#thong-bao-email">📧 Thông báo email</a><br/>
@@ -41,7 +55,7 @@
       <a href="#gioi-han">⚠️ Giới hạn và lưu ý</a><br/>
       <a href="#xu-ly-su-co">🩺 Xử lý sự cố</a>
     </td>
-    <td valign="top" width="33%">
+    <td valign="top" width="33%" style="padding-top: 8px;">
       <a href="#go-cai-dat">🗑️ Gỡ cài đặt</a><br/>
       <a href="#bao-mat">🔒 Quyền riêng tư và bảo mật</a><br/>
       <a href="#cau-truc-repo">📁 Cấu trúc repo</a><br/>
