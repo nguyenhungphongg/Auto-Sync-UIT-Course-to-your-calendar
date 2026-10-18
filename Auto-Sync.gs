@@ -698,23 +698,36 @@ function isNewerVersion(remote, local) {
 
 function checkForUpdates() {
   let cache = null;
+  const cacheKey = 'UPDATE_INFO_' + SYSTEM_CONFIG.CURRENT_VERSION;   // ← thêm version vào key
+
   try {
     cache = CacheService.getScriptCache();
-    const cached = cache.get('UPDATE_INFO');
+    const cached = cache.get(cacheKey);
     if (cached) return JSON.parse(cached);
   } catch (e) {}
 
   let info = { hasUpdate: false };
   try {
-    const res = UrlFetchApp.fetch('https://raw.githubusercontent.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/main/version.json', { muteHttpExceptions: true });
+    const res = UrlFetchApp.fetch(
+      'https://raw.githubusercontent.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar/main/version.json',
+      { muteHttpExceptions: true }
+    );
     if (res.getResponseCode() === 200) {
       const data = JSON.parse(res.getContentText());
       if (isNewerVersion(data.latest, SYSTEM_CONFIG.CURRENT_VERSION)) {
-        info = { hasUpdate: true, remoteVersion: String(data.latest), message: data.message || '', isUrgent: data.isUrgent === true };
+        info = {
+          hasUpdate: true,
+          remoteVersion: String(data.latest),
+          message: data.message || '',
+          isUrgent: data.isUrgent === true
+        };
       }
     }
   } catch (e) {}
 
-  try { if (cache) cache.put('UPDATE_INFO', JSON.stringify(info), SYSTEM_CONFIG.UPDATE_CACHE_SECONDS); } catch (e) {}
+  try {
+    if (cache) cache.put(cacheKey, JSON.stringify(info), SYSTEM_CONFIG.UPDATE_CACHE_SECONDS);
+  } catch (e) {}
+
   return info;
 }
