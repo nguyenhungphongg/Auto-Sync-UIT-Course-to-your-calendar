@@ -1,0 +1,4 @@
+{
+  "latest": "1.1",
+  "message": "Sửa lỗi trùng lặp lịch, bug DATABASE và bug khi khởi tạo quá nhiều lịch và tăng tốc độ xử lý"
+}
