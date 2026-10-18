@@ -94,6 +94,7 @@ const CONFIG = {
   // Nếu không muốn nhận thông báo, đặt REMINDERS: []
 };
 ```
+> ⚠️ Lưu ý: Sau khi chỉnh CONFIG xong, hãy bấm vào nút Save 💾 hoặc Ctrl + S để code được lưu lại thì mới hiện các hàm để chạy được
 
 ### Bước 4: Chạy cài đặt
 
