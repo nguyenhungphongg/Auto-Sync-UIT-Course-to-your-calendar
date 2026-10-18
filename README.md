@@ -473,6 +473,3 @@ Phát hành theo giấy phép **MIT**. Xem file [`LICENSE`](./LICENSE) để bi�
   Được tạo bởi <a href="https://github.com/nguyenhungphongg"><b>nguyenhungphongg</b></a> 💙<br/>
   <sub>Dự án không liên kết chính thức với Moodle hay Google.</sub>
 </p>
-  Được tạo bởi <a href="https://github.com/nguyenhungphongg"><b>nguyenhungphongg</b></a> 💙<br/>
-  <sub>Dự án không liên kết chính thức với Moodle hay Google.</sub>
-</p>
