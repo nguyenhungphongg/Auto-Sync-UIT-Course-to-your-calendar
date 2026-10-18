@@ -18,7 +18,7 @@ Dự án nhỏ này sẽ giúp bạn đồng bộ toàn bộ sự kiện từ Mo
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="https://github.com/user-attachments/assets/96de3420-fd6f-408f-abe2-495363f4d883" alt="Tự động đồng bộ deadline vào Google Calendar" width="100%" />
+      <img src="https://github.com/user-attachments/assets/2c7b59e6-9b3b-4002-b13e-469d7d43586f" alt="Tự động đồng bộ deadline vào Google Calendar" width="100%" />
       <sub>Tự động cập nhật deadline qua Google Calendar</sub>
     </td>
     <td align="center" width="50%">
