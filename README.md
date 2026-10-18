@@ -143,9 +143,12 @@ Mỗi sự kiện được nhận diện bằng `UID` mà Moodle cấp. Script l
 ### Bước 1: Lấy link xuất lịch từ Moodle
 
 1. Đăng nhập Moodle của trường (với UIT là <a href="https://courses.uit.edu.vn">`courses.uit.edu.vn`</a>).
-2. Vào **Lịch** (Calendar) → **Nhập hoặc xuất lịch** (Import or export calendars) → **Xuất lịch** (Export calendar).
-3. Chọn **Sự kiện cần xuất** là *Tất cả sự kiện* (hoặc loại bạn muốn) và chọn **khoảng thời gian** đủ rộng, xem [lưu ý](#gioi-han).
-4. Bấm **Lấy URL lịch** (Get calendar URL) rồi sao chép link.
+2. Vào **Lịch** (Calendar) → **Quản lí theo dõi** → **Xuất lịch biểu**.
+3. Chọn **Các sự kiện được xuất** là *Tất cả sự kiện* (hoặc loại bạn muốn) và chọn **Khoảng thời gian** đủ rộng, xem [lưu ý](#gioi-han).
+4. Bấm **Lấy địa chỉ mạng của lịch** rồi nhấn sao chép link.
+
+> Mẹo: Với các trường khác, thông thường đường dẫn đến lịch của bạn sẽ là `https://[link moodle của bạn]/calendar/export.php`. Chẳng hạn như: `https://lms.hcmut.edu.vn/calendar/export.php`
+> Nếu như bạn không thể tìm thấy link lịch hoặc trường không hỗ trợ, thì rất tiếc phải thông báo rằng là bạn không thể sử dụng dự án này được rồi 😥
 
 Link có dạng:
 
