@@ -1,5 +1,5 @@
 {
-  "latest": "1.3.1",
-  "message": "Sửa lỗi nhân bản sự kiện mỗi lần đồng bộ + ép lịch dùng múi giờ Asia/Ho_Chi_Minh (Việt Nam). Khuyến nghị chạy 'Dọn dẹp lịch trùng' một lần sau khi cập nhật.",
-  "isUrgent": true
+  "latest": "1.3.2",
+  "message": "Sửa lỗi khi người dùng xoá thủ công một sự kiện thì code không biết đồng bộ lại sự kiện đã mất",
+  "isUrgent": false
 }
