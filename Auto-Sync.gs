@@ -1,6 +1,6 @@
 /*************************************************
  * MOODLE → GOOGLE CALENDAR SYNC (UNIVERSAL)
- * Version: 1.3.1 (fixed duplicates + Vietnam timezone)
+ * Version: 1.3.2 (fix lỗi đồng bộ hoá các sự kiện bị người dùng xoá mất)
  *************************************************/
 
 // =================================================
