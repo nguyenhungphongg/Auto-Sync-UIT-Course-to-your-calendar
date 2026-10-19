@@ -152,7 +152,7 @@ function onOpen() {
 // 3. ⚙️ CẤU HÌNH HỆ THỐNG
 // =================================================
 const SYSTEM_CONFIG = {
-  CURRENT_VERSION: '1.3.1',
+  CURRENT_VERSION: '1.3.2',
   LOG_SHEET_NAME: 'Moodle Calendar Sync Log',
   HISTORY_SHEET_NAME: '📜 History',
   DB_SHEET_NAME: '⚙️ Internal DB',
@@ -201,7 +201,7 @@ function getSafeConfig() {
         if (sEmail) { config.NOTIFY_EMAIL = sEmail; props.setProperty('NOTIFY_EMAIL', sEmail); }
       }
     }
-  } catch (e) {}
+  } catch (e) { }
   return config;
 }
 
@@ -269,7 +269,7 @@ function getLogSpreadsheet() {
     return active;
   }
   const savedId = props.getProperty('LOG_SPREADSHEET_ID');
-  if (savedId) { try { return SpreadsheetApp.openById(savedId); } catch (e) {} }
+  if (savedId) { try { return SpreadsheetApp.openById(savedId); } catch (e) { } }
   const files = DriveApp.getFilesByName(SYSTEM_CONFIG.LOG_SHEET_NAME);
   while (files.hasNext()) {
     const f = files.next();
@@ -364,16 +364,14 @@ function runSync(config) {
 
       try {
         if (!old) {
-          // === FIXED: tìm event đã tồn tại trước khi tạo mới (chống nhân bản) ===
+          // Chưa từng theo dõi → tìm hoặc tạo mới
           let googleEvent = findExistingEvent(calendar, data);
           if (googleEvent) {
-            // Đã có sẵn → tái sử dụng, chỉ update nếu cần
-            const oldData = null;
-            updateGoogleEvent(googleEvent, data, oldData, config);
+            updateGoogleEvent(googleEvent, data, null, config);
             const record = makeRecord(googleEvent, signature, data, false);
             stored[data.uid] = record;
             updated++; opsDone++;
-            changes.push({ type: 'UPDATED', event: data, details: 'Tái sử dụng event đã tồn tại (chống trùng).' });
+            changes.push({ type: 'UPDATED', event: data, details: 'Tái sử dụng event đã tồn tại.' });
             if (!ensureReminders(googleEvent, record, config)) { rateLimited = true; pending++; }
           } else {
             googleEvent = createGoogleEvent(calendar, data, config);
@@ -386,18 +384,45 @@ function runSync(config) {
           pause(); continue;
         }
 
-        const googleEvent = calendar.getEventById(old.eventId);
+        // === Đã có trong Internal DB ===
+        let googleEvent = null;
+
+        // 1. Thử lấy theo ID đã lưu
+        try {
+          googleEvent = calendar.getEventById(old.eventId);
+        } catch (e) {
+          googleEvent = null;
+        }
+
+        // 2. Quan trọng: Kiểm tra lại xem sự kiện có thực sự còn tồn tại không
+        //    (vì getEventById vẫn trả về object dù đã bị xóa thủ công)
+        if (googleEvent) {
+          const startCheck = new Date(googleEvent.getStartTime().getTime() - 2 * 60 * 1000);
+          const endCheck = new Date(googleEvent.getStartTime().getTime() + 2 * 60 * 1000);
+          const list = calendar.getEvents(startCheck, endCheck);
+          const stillExists = list.some(e => e.getId() === googleEvent.getId());
+          if (!stillExists) {
+            googleEvent = null; // Đã bị xóa thật
+          }
+        }
+
+        // 3. Nếu vẫn không có → thử tìm theo title + giờ
         if (!googleEvent) {
-          // Event bị xóa thủ công → tạo lại, nhưng vẫn check trùng
-          let recreated = findExistingEvent(calendar, data);
-          if (!recreated) recreated = createGoogleEvent(calendar, data, config);
+          googleEvent = findExistingEvent(calendar, data);
+        }
+
+        // 4. Quyết định tạo mới hay cập nhật
+        if (!googleEvent) {
+          // Sự kiện đã bị xóa hoàn toàn → tạo lại
+          const recreated = createGoogleEvent(calendar, data, config);
           const record = makeRecord(recreated, signature, data, false);
           stored[data.uid] = record;
           added++; opsDone++;
-          changes.push({ type: 'ADDED', event: data, details: 'Tạo lại vì bị xóa.' });
+          changes.push({ type: 'ADDED', event: data, details: 'Tạo lại vì bị xóa thủ công.' });
           if (!ensureReminders(recreated, record, config)) { rateLimited = true; pending++; }
           pause();
         } else if (needsWork) {
+          // Còn tồn tại nhưng nội dung thay đổi
           const oldData = old.data ? deserializeEvent(old.data) : null;
           updateGoogleEvent(googleEvent, data, oldData, config);
           const record = makeRecord(googleEvent, signature, data, old.rem);
@@ -410,10 +435,12 @@ function runSync(config) {
           if (ensureReminders(googleEvent, old, config)) { opsDone++; } else { rateLimited = true; pending++; }
           pause();
         }
+        // else: không cần làm gì
       } catch (e) {
         if (!isRateLimitError(e)) throw e;
         rateLimited = true;
-        const now = stored[data.uid]; if (!now || now.signature !== signature) pending++;
+        const now = stored[data.uid];
+        if (!now || now.signature !== signature) pending++;
       }
     }
 
@@ -443,17 +470,17 @@ function runSync(config) {
   if (rateLimited && opsDone === 0) throw new Error('Google đang giới hạn API. Sẽ thử lại sau.');
 
   if (changes.length > 0) {
-    try { writeLogs(changes); } catch (e) {}
+    try { writeLogs(changes); } catch (e) { }
     if (!isInitial) { try { sendChangeNotification(changes, config); } catch (e) { Logger.log('Không gửi được email thông báo: ' + e); } }
   }
   if (isInitial && pending === 0 && !rateLimited) props.deleteProperty('INITIAL_SYNC_PENDING');
 
   const summary = formatDate(new Date()) + ` | Thêm: ${added} | Sửa: ${updated} | Xóa: ${deleted}` + (pending ? ` | Chờ: ${pending}` : '');
   props.setProperty('LAST_SYNC', summary);
-  try { updateDashboard(); } catch (e) {}
+  try { updateDashboard(); } catch (e) { }
 
   const wasError = props.getProperty('SYNC_ERROR_STATE');
-  if (wasError) { try { sendRecoveryNotification(Number(props.getProperty('SYNC_ERROR_COUNT') || 0), config); } catch (e) {} }
+  if (wasError) { try { sendRecoveryNotification(Number(props.getProperty('SYNC_ERROR_COUNT') || 0), config); } catch (e) { } }
   props.deleteProperty('SYNC_ERROR_STATE'); props.deleteProperty('SYNC_ERROR_COUNT');
 
   try {
@@ -464,7 +491,7 @@ function runSync(config) {
         props.setProperty('LAST_NOTIFIED_VERSION', String(updateInfo.remoteVersion));
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   return { ok: true, pending: pending, summary: summary };
 }
@@ -474,7 +501,7 @@ function findExistingEvent(calendar, data) {
   if (!data.start) return null;
   // Tìm trong khoảng ±2 phút quanh thời điểm bắt đầu
   const from = new Date(data.start.getTime() - 2 * 60 * 1000);
-  const to   = new Date(data.start.getTime() + 2 * 60 * 1000);
+  const to = new Date(data.start.getTime() + 2 * 60 * 1000);
   const candidates = calendar.getEvents(from, to);
   for (const evt of candidates) {
     if (evt.getTitle() === data.title && Math.abs(evt.getStartTime().getTime() - data.start.getTime()) < 60000) {
@@ -510,9 +537,9 @@ function ensureReminders(googleEvent, record, config) {
   }
 }
 
-function createSignature(d) { return JSON.stringify({ t: d.title, s: d.start?d.start.getTime():null, e: d.end?d.end.getTime():null, l: d.location||'', d: d.description||'' }); }
-function serializeEvent(d) { return { uid: d.uid, title: d.title, start: d.start?d.start.getTime():null, end: d.end?d.end.getTime():null, location: d.location||'', description: d.description||'' }; }
-function deserializeEvent(d) { return d ? { uid: d.uid, title: d.title, start: d.start?new Date(d.start):null, end: d.end?new Date(d.end):null, location: d.location||'', description: d.description||'' } : null; }
+function createSignature(d) { return JSON.stringify({ t: d.title, s: d.start ? d.start.getTime() : null, e: d.end ? d.end.getTime() : null, l: d.location || '', d: d.description || '' }); }
+function serializeEvent(d) { return { uid: d.uid, title: d.title, start: d.start ? d.start.getTime() : null, end: d.end ? d.end.getTime() : null, location: d.location || '', description: d.description || '' }; }
+function deserializeEvent(d) { return d ? { uid: d.uid, title: d.title, start: d.start ? new Date(d.start) : null, end: d.end ? new Date(d.end) : null, location: d.location || '', description: d.description || '' } : null; }
 
 function buildDescription(data, config) { return (data.description || '') + `\n\n[Đồng bộ tự động từ Moodle ${config.UNIVERSITY_NAME}]`; }
 function createGoogleEvent(cal, data, config) { return withRetry(() => cal.createEvent(data.title, data.start, data.end, { location: data.location || '', description: buildDescription(data, config) })); }
@@ -521,8 +548,8 @@ function updateGoogleEvent(evt, d, old, config) {
   withRetry(() => {
     if (!old || old.title !== d.title) evt.setTitle(d.title);
     if (!old || !old.start || !old.end || old.start.getTime() !== d.start.getTime() || old.end.getTime() !== d.end.getTime()) evt.setTime(d.start, d.end);
-    if (!old || (old.location||'') !== (d.location||'')) evt.setLocation(d.location || '');
-    if (!old || (old.description||'') !== (d.description||'')) evt.setDescription(buildDescription(d, config));
+    if (!old || (old.location || '') !== (d.location || '')) evt.setLocation(d.location || '');
+    if (!old || (old.description || '') !== (d.description || '')) evt.setDescription(buildDescription(d, config));
   });
 }
 function describeChange(old, n) {
@@ -530,7 +557,7 @@ function describeChange(old, n) {
   const c = [];
   if (old.title !== n.title) c.push(`📚 Môn đổi`);
   if (!old.start || !old.end || old.start.getTime() !== n.start.getTime() || old.end.getTime() !== n.end.getTime()) c.push(`⏰ Giờ đổi`);
-  if ((old.location||'') !== (n.location||'')) c.push(`🏫 Phòng đổi`);
+  if ((old.location || '') !== (n.location || '')) c.push(`🏫 Phòng đổi`);
   return c.length ? c.join('\n') : 'Thay đổi.';
 }
 
@@ -547,7 +574,7 @@ function handleSyncError(e, config) {
   const c = Number(p.getProperty('SYNC_ERROR_COUNT') || 0) + 1;
   p.setProperty('SYNC_ERROR_COUNT', String(c)); p.setProperty('SYNC_ERROR_STATE', 'ERROR'); p.setProperty('LAST_ERROR', String(e));
   if (config && config.NOTIFY_EMAIL && (c === 1 || c % SYSTEM_CONFIG.ERROR_REMINDER_COUNT === 0)) {
-    try { MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `❌ Moodle Sync Error`, body: `Lỗi:\n${e}\nLiên tiếp: ${c}` }); } catch (mailErr) {}
+    try { MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `❌ Moodle Sync Error`, body: `Lỗi:\n${e}\nLiên tiếp: ${c}` }); } catch (mailErr) { }
   }
 }
 function sendRecoveryNotification(c, config) { if (config.NOTIFY_EMAIL) MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `✅ Hệ thống đã phục hồi`, body: `Hoạt động trở lại sau ${c} lỗi.` }); }
@@ -567,7 +594,7 @@ function parseICS(ics) {
         const start = parseICSTime(current.DTS_V, current.DTS_T);
         let end = parseICSTime(current.DTE_V, current.DTE_T);
         if (start && !end) end = isDateOnly(current.DTS_V) ? new Date(start.getTime() + 86400000) : start;
-        const e = { uid: current.UID||'', title: unescapeICS(current.SUMMARY||''), start: start, end: end, location: unescapeICS(current.LOCATION||''), description: unescapeICS(current.DESCRIPTION||'') };
+        const e = { uid: current.UID || '', title: unescapeICS(current.SUMMARY || ''), start: start, end: end, location: unescapeICS(current.LOCATION || ''), description: unescapeICS(current.DESCRIPTION || '') };
         if (e.start && e.end) events.push(e);
       }
       current = null; inAlarm = false; return;
@@ -615,8 +642,8 @@ function createDashboard() {
   let settingsSheet = ss.getSheetByName(SYSTEM_CONFIG.SETTINGS_SHEET_NAME) || ss.insertSheet(SYSTEM_CONFIG.SETTINGS_SHEET_NAME);
   let eventsSheet = ss.getSheetByName(SYSTEM_CONFIG.EVENTS_SHEET_NAME) || ss.insertSheet(SYSTEM_CONFIG.EVENTS_SHEET_NAME);
 
-  try { ss.setActiveSheet(dashboard); ss.moveActiveSheet(1); ss.setActiveSheet(settingsSheet); ss.moveActiveSheet(2); } catch(e){}
-  ['Trang tính 1', 'Trang tính1', 'Sheet1', 'Sheet 1'].forEach(n => { const s = ss.getSheetByName(n); if (s && ss.getSheets().length > 1) try{ss.deleteSheet(s);}catch(e){} });
+  try { ss.setActiveSheet(dashboard); ss.moveActiveSheet(1); ss.setActiveSheet(settingsSheet); ss.moveActiveSheet(2); } catch (e) { }
+  ['Trang tính 1', 'Trang tính1', 'Sheet1', 'Sheet 1'].forEach(n => { const s = ss.getSheetByName(n); if (s && ss.getSheets().length > 1) try { ss.deleteSheet(s); } catch (e) { } });
 
   const safeConfig = getSafeConfig();
 
@@ -645,7 +672,7 @@ function createDashboard() {
   dashboard.getRange('A3:B9').setBackground(null).setFontColor(null).setFontWeight('normal');
 
   dashboard.getRange('A3:B9').setValues([
-    ['Trạng thái', Number(props.getProperty('SYNC_ERROR_COUNT')||0) === 0 ? '🟢 ĐANG HOẠT ĐỘNG' : '🔴 CÓ LỖI'],
+    ['Trạng thái', Number(props.getProperty('SYNC_ERROR_COUNT') || 0) === 0 ? '🟢 ĐANG HOẠT ĐỘNG' : '🔴 CÓ LỖI'],
     ['Lần đồng bộ cuối', props.getProperty('LAST_SYNC') || 'Chưa có'],
     vRow,
     ['Chu kỳ đồng bộ', SYSTEM_CONFIG.SYNC_INTERVAL + ' phút'],
@@ -675,7 +702,7 @@ function createDashboard() {
 
 function showMessage(t) {
   Logger.log(t);
-  try { SpreadsheetApp.getUi().alert(t); } catch (e) {}
+  try { SpreadsheetApp.getUi().alert(t); } catch (e) { }
 }
 
 function showToast(t, title) {
@@ -683,7 +710,7 @@ function showToast(t, title) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     if (ss) ss.toast(t, title || '', 5);
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function isNewerVersion(remote, local) {
@@ -704,7 +731,7 @@ function checkForUpdates() {
     cache = CacheService.getScriptCache();
     const cached = cache.get(cacheKey);
     if (cached) return JSON.parse(cached);
-  } catch (e) {}
+  } catch (e) { }
 
   let info = { hasUpdate: false };
   try {
@@ -723,11 +750,11 @@ function checkForUpdates() {
         };
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     if (cache) cache.put(cacheKey, JSON.stringify(info), SYSTEM_CONFIG.UPDATE_CACHE_SECONDS);
-  } catch (e) {}
+  } catch (e) { }
 
   return info;
 }
