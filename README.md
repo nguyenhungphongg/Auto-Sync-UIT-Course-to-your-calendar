@@ -7,7 +7,7 @@
 
 <p align="center">
   <img alt="ViewCount" src="https://hits.sh/github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar.svg?extra_count=150&label=Views&color=7928ca" />
-  <img alt="Version" src="https://img.shields.io/badge/version-1.3-blue" />
+  <img alt="Version" src="https://img.shields.io/badge/version-1.3.2-blue" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Google%20Apps%20Script-4285F4?logo=google&logoColor=white" />
   <img alt="Sync" src="https://img.shields.io/badge/Sync-m%E1%BB%97i%2015%20ph%C3%BAt-success" />
   <img alt="Cost" src="https://img.shields.io/badge/Chi%20ph%C3%AD-mi%E1%BB%85n%20ph%C3%AD-brightgreen" />
