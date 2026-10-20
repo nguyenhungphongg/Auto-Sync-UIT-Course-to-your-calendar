@@ -82,6 +82,8 @@ Bạn đã từng gặp mấy tình huống "dở khóc dở cười" này chưa
 
 ❌ Lười đăng nhập Moodle (Courses, Elearning) mỗi ngày chỉ để xem tuần này có deadline gì.
 
+❌ Dùng chức năng “Thêm bằng URL” của Google Calendar thì lịch cập nhật chậm kinh khủng (thường 12–24 tiếng mới có thay đổi).
+
 Moodle cho phép xuất lịch ra file `.ics`, nhưng file đó chỉ là bản chụp tại thời điểm xuất. Khi giảng viên đổi giờ nộp bài hay thêm deadline mới, lịch trên điện thoại của bạn **không tự cập nhật**.
 
 Nếu bạn dùng chức năng lấy lịch mặc định của Google, nó sẽ không được cập nhật thường xuyên hơn (thường thì từ 12-24h mới cập nhật 1 lần).
