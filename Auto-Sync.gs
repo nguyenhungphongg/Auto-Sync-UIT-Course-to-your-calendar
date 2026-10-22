@@ -1,6 +1,6 @@
-/*************************************************
+﻿/*************************************************
  * MOODLE → GOOGLE CALENDAR SYNC (UNIVERSAL)
- * Version: 1.3.2 (fix lỗi đồng bộ hoá các sự kiện bị người dùng xoá mất)
+ * Version: 1.3.3 (thay đổi giao diện mail và chỉnh vài bug nhỏ)
  *************************************************/
 
 // =================================================
@@ -152,7 +152,7 @@ function onOpen() {
 // 3. ⚙️ CẤU HÌNH HỆ THỐNG
 // =================================================
 const SYSTEM_CONFIG = {
-  CURRENT_VERSION: '1.3.2',
+  CURRENT_VERSION: '1.3.3',
   LOG_SHEET_NAME: 'Moodle Calendar Sync Log',
   HISTORY_SHEET_NAME: '📜 History',
   DB_SHEET_NAME: '⚙️ Internal DB',
@@ -445,22 +445,33 @@ function runSync(config) {
     }
 
     // Xóa những event không còn trên Moodle
+    // Xóa những event không còn trên Moodle
     for (const uid of Object.keys(stored)) {
       if (currentUIDs[uid]) continue;
       if (!hasBudget()) { pending++; continue; }
       const old = stored[uid];
       try {
-        const googleEvent = calendar.getEventById(old.eventId);
+        let googleEvent = null;
+        try {
+          googleEvent = calendar.getEventById(old.eventId);
+        } catch (e) {
+          googleEvent = null; // ID hỏng / đã xóa → bỏ qua
+        }
         if (googleEvent) {
           withRetry(() => googleEvent.deleteEvent());
           deleted++; opsDone++;
-          changes.push({ type: 'DELETED', event: old.data ? deserializeEvent(old.data) : { title: 'Không rõ môn', uid: uid }, details: 'Xóa vì không còn trên Moodle.' });
+          changes.push({
+            type: 'DELETED',
+            event: old.data ? deserializeEvent(old.data) : { title: 'Không rõ môn', uid: uid },
+            details: 'Xóa vì không còn trên Moodle.'
+          });
           pause();
         }
         delete stored[uid];
       } catch (e) {
         if (!isRateLimitError(e)) throw e;
-        rateLimited = true; pending++;
+        rateLimited = true;
+        pending++;
       }
     }
   } finally {
@@ -487,7 +498,27 @@ function runSync(config) {
     const updateInfo = checkForUpdates();
     if (updateInfo.hasUpdate && updateInfo.isUrgent && config.NOTIFY_EMAIL) {
       if (props.getProperty('LAST_NOTIFIED_VERSION') !== String(updateInfo.remoteVersion)) {
-        MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `🚨 BẢN CẬP NHẬT QUAN TRỌNG: Sync Tool v${updateInfo.remoteVersion}`, body: `Chi tiết: ${updateInfo.message}\nCopy code mới trên GitHub dán vào Apps Script!` });
+        const updateHtml = buildEmailShell(config, `
+          <tr>
+            <td style="background:linear-gradient(135deg,#F59E0B 0%,#EF4444 100%);padding:36px 24px;text-align:center;border-radius:16px 16px 0 0;">
+              <div style="font-size:40px;line-height:1;">🚨</div>
+              <h1 style="color:#FFFFFF;margin:12px 0 4px;font-size:22px;font-weight:700;">Bản cập nhật quan trọng!</h1>
+              <p style="color:#FEF3C7;margin:0;font-size:14px;">Sync Tool v${updateInfo.remoteVersion} đã sẵn sàng</p>
+            </td>
+          </tr>
+          <tr><td style="padding:20px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFBEB;border-radius:12px;border:1px solid #FDE68A;">
+              <tr><td style="padding:16px 20px;text-align:center;">
+                <p style="font-size:15px;color:#92400E;margin:0 0 12px;">${escapeHtml(updateInfo.message)}</p>
+                <a href="https://github.com/nguyenhungphongg/Auto-Sync-UIT-Course-to-your-calendar" style="display:inline-block;background:#F59E0B;color:#FFFFFF;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:600;font-size:14px;">📥 Lấy code mới trên GitHub</a>
+              </td></tr>
+            </table>
+          </td></tr>
+          <tr><td style="padding:8px 24px 8px;text-align:center;">
+            <p style="font-size:13px;color:#9CA3AF;">Copy code mới từ GitHub dán vào Apps Script để cập nhật.</p>
+          </td></tr>
+        `);
+        MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `🚨 BẢN CẬP NHẬT QUAN TRỌNG: Sync Tool v${updateInfo.remoteVersion}`, body: `Chi tiết: ${updateInfo.message}\nCopy code mới trên GitHub dán vào Apps Script!`, htmlBody: updateHtml });
         props.setProperty('LAST_NOTIFIED_VERSION', String(updateInfo.remoteVersion));
       }
     }
@@ -565,19 +596,149 @@ function sendChangeNotification(changes, config) {
   if (!config.NOTIFY_EMAIL) return;
   let sub = `🔔 ${config.UNIVERSITY_NAME} đổi lịch`;
   if (changes.length === 1) sub = changes[0].type === 'DELETED' ? `🚨 Hủy: ${changes[0].event.title}` : (changes[0].type === 'ADDED' ? `🆕 Thêm: ${changes[0].event.title}` : `🔔 Đổi: ${changes[0].event.title}`);
-  let body = `Phát hiện ${changes.length} thay đổi:\n\n`;
-  changes.forEach(c => { body += `━ Môn: ${c.event.title}\nNgày: ${formatDate(c.event.start)}\n${c.details}\n\n`; });
-  MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: sub, body: body });
+
+  const typeIcon = { ADDED: '🆕', UPDATED: '🔄', DELETED: '🗑️' };
+  const typeLabel = { ADDED: 'Thêm mới', UPDATED: 'Cập nhật', DELETED: 'Đã xóa' };
+  const typeColor = { ADDED: '#059669', UPDATED: '#D97706', DELETED: '#DC2626' };
+
+  let cardsHtml = '';
+  changes.forEach(c => {
+    const icon = typeIcon[c.type] || '🔔';
+    const label = typeLabel[c.type] || c.type;
+    const color = typeColor[c.type] || '#6B7280';
+    cardsHtml += `
+      <tr><td style="padding:6px 24px 6px 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;">
+          <tr>
+            <td style="border-left:5px solid ${color};padding:16px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="font-size:13px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:6px;">${icon} ${label}</td>
+                </tr>
+                <tr>
+                  <td style="font-size:17px;font-weight:700;color:#1F2937;padding-bottom:8px;">${escapeHtml(c.event.title)}</td>
+                </tr>
+                <tr>
+                  <td style="font-size:14px;color:#4B5563;line-height:1.6;">
+                    ${c.event.start ? '📅 <strong>' + formatDate(c.event.start) + '</strong>' : ''}
+                    ${c.event.location ? '<br>🏫 ' + escapeHtml(c.event.location) : ''}
+                    ${c.details ? '<br>📝 ' + escapeHtml(c.details).replace(/\n/g, '<br>') : ''}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td></tr>`;
+  });
+
+  const addedCount = changes.filter(c => c.type === 'ADDED').length;
+  const updatedCount = changes.filter(c => c.type === 'UPDATED').length;
+  const deletedCount = changes.filter(c => c.type === 'DELETED').length;
+
+  let statsHtml = '';
+  if (addedCount) statsHtml += `<td style="text-align:center;padding:6px 12px;"><span style="display:inline-block;background:#ECFDF5;color:#059669;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;">➕ ${addedCount} thêm</span></td>`;
+  if (updatedCount) statsHtml += `<td style="text-align:center;padding:6px 12px;"><span style="display:inline-block;background:#FFFBEB;color:#D97706;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;">✏️ ${updatedCount} sửa</span></td>`;
+  if (deletedCount) statsHtml += `<td style="text-align:center;padding:6px 12px;"><span style="display:inline-block;background:#FEF2F2;color:#DC2626;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600;">🗑️ ${deletedCount} xóa</span></td>`;
+
+  const htmlBody = buildEmailShell(config, `
+    <!-- Header -->
+    <tr>
+      <td style="background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);padding:36px 24px;text-align:center;border-radius:16px 16px 0 0;">
+        <div style="font-size:40px;line-height:1;">📅</div>
+        <h1 style="color:#FFFFFF;margin:12px 0 4px;font-size:22px;font-weight:700;">Lịch học có thay đổi!</h1>
+        <p style="color:#C7D2FE;margin:0;font-size:14px;">Phát hiện ${changes.length} thay đổi từ Moodle ${escapeHtml(config.UNIVERSITY_NAME)}</p>
+      </td>
+    </tr>
+    <!-- Stats -->
+    <tr><td style="padding:16px 24px 0 24px;">
+      <table cellpadding="0" cellspacing="0" align="center"><tr>${statsHtml}</tr></table>
+    </td></tr>
+    <!-- Cards -->
+    ${cardsHtml}
+    <!-- Footer link -->
+    <tr><td style="padding:20px 24px 8px;text-align:center;">
+      <p style="font-size:13px;color:#9CA3AF;margin:0;">Thay đổi đã được đồng bộ vào Google Calendar của bạn tự động.</p>
+    </td></tr>
+  `);
+
+  let plainBody = `Phát hiện ${changes.length} thay đổi:\n\n`;
+  changes.forEach(c => { plainBody += `━ Môn: ${c.event.title}\nNgày: ${formatDate(c.event.start)}\n${c.details}\n\n`; });
+
+  MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: sub, body: plainBody, htmlBody: htmlBody });
 }
+
 function handleSyncError(e, config) {
   const p = PropertiesService.getScriptProperties();
   const c = Number(p.getProperty('SYNC_ERROR_COUNT') || 0) + 1;
   p.setProperty('SYNC_ERROR_COUNT', String(c)); p.setProperty('SYNC_ERROR_STATE', 'ERROR'); p.setProperty('LAST_ERROR', String(e));
   if (config && config.NOTIFY_EMAIL && (c === 1 || c % SYSTEM_CONFIG.ERROR_REMINDER_COUNT === 0)) {
-    try { MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `❌ Moodle Sync Error`, body: `Lỗi:\n${e}\nLiên tiếp: ${c}` }); } catch (mailErr) { }
+    const htmlBody = buildEmailShell(config, `
+      <tr>
+        <td style="background:linear-gradient(135deg,#DC2626 0%,#EF4444 100%);padding:36px 24px;text-align:center;border-radius:16px 16px 0 0;">
+          <div style="font-size:40px;line-height:1;">❌</div>
+          <h1 style="color:#FFFFFF;margin:12px 0 4px;font-size:22px;font-weight:700;">Đồng bộ bị lỗi!</h1>
+          <p style="color:#FCA5A5;margin:0;font-size:14px;">Hệ thống đã gặp lỗi khi đồng bộ với Moodle</p>
+        </td>
+      </tr>
+      <tr><td style="padding:20px 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#FEF2F2;border-radius:12px;border:1px solid #FECACA;">
+          <tr><td style="padding:16px 20px;">
+            <p style="font-size:13px;color:#991B1B;font-weight:600;margin:0 0 8px;">CHI TIẾT LỖI</p>
+            <p style="font-size:14px;color:#DC2626;margin:0;font-family:monospace;word-break:break-all;">${escapeHtml(String(e))}</p>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:0 24px 16px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#F9FAFB;border-radius:12px;border:1px solid #E5E7EB;">
+          <tr><td style="padding:16px 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="font-size:14px;color:#6B7280;padding:4px 0;">🔢 Lỗi liên tiếp</td>
+                <td style="font-size:14px;color:#1F2937;font-weight:600;text-align:right;padding:4px 0;">${c} lần</td>
+              </tr>
+              <tr>
+                <td style="font-size:14px;color:#6B7280;padding:4px 0;">🕐 Thời điểm</td>
+                <td style="font-size:14px;color:#1F2937;font-weight:600;text-align:right;padding:4px 0;">${formatDate(new Date())}</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+      </td></tr>
+      <tr><td style="padding:4px 24px 8px;text-align:center;">
+        <p style="font-size:13px;color:#9CA3AF;">Hệ thống sẽ tự thử lại. Nếu lỗi kéo dài, kiểm tra lại Link Moodle trong Google Sheet.</p>
+      </td></tr>
+    `);
+    try { MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `❌ Moodle Sync Error (${c} lần)`, body: `Lỗi:\n${e}\nLiên tiếp: ${c}`, htmlBody: htmlBody }); } catch (mailErr) { }
   }
 }
-function sendRecoveryNotification(c, config) { if (config.NOTIFY_EMAIL) MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `✅ Hệ thống đã phục hồi`, body: `Hoạt động trở lại sau ${c} lỗi.` }); }
+
+function sendRecoveryNotification(c, config) {
+  if (!config.NOTIFY_EMAIL) return;
+  const htmlBody = buildEmailShell(config, `
+    <tr>
+      <td style="background:linear-gradient(135deg,#059669 0%,#10B981 100%);padding:36px 24px;text-align:center;border-radius:16px 16px 0 0;">
+        <div style="font-size:40px;line-height:1;">✅</div>
+        <h1 style="color:#FFFFFF;margin:12px 0 4px;font-size:22px;font-weight:700;">Hệ thống đã phục hồi!</h1>
+        <p style="color:#A7F3D0;margin:0;font-size:14px;">Đồng bộ Moodle hoạt động trở lại bình thường</p>
+      </td>
+    </tr>
+    <tr><td style="padding:20px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#ECFDF5;border-radius:12px;border:1px solid #A7F3D0;">
+        <tr><td style="padding:16px 20px;text-align:center;">
+          <p style="font-size:32px;margin:0 0 8px;">🎉</p>
+          <p style="font-size:16px;font-weight:600;color:#065F46;margin:0 0 4px;">Mọi thứ đã ổn!</p>
+          <p style="font-size:14px;color:#059669;margin:0;">Hệ thống đã phục hồi sau <strong>${c}</strong> lần lỗi liên tiếp.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td style="padding:8px 24px 8px;text-align:center;">
+      <p style="font-size:13px;color:#9CA3AF;">Lịch học sẽ tiếp tục được đồng bộ tự động.</p>
+    </td></tr>
+  `);
+  MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: `✅ Hệ thống đã phục hồi`, body: `Hoạt động trở lại sau ${c} lỗi.`, htmlBody: htmlBody });
+}
+
 
 // -------------------------------------------------
 // Đọc file ICS (giữ nguyên)
@@ -632,6 +793,39 @@ function parseICSTime(v, tz) {
   return Utilities.parseDate(`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}:${m[6] || '00'}`, zone, 'yyyy-MM-dd HH:mm:ss');
 }
 function unescapeICS(v) { return String(v).replace(/\\([nN,;\\])/g, (m, c) => (c === 'n' || c === 'N') ? '\n' : c); }
+
+// -------------------------------------------------
+// Email template helpers
+// -------------------------------------------------
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function buildEmailShell(config, innerHtml) {
+  const year = new Date().getFullYear();
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#F3F4F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6;padding:24px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.08);overflow:hidden;">
+        ${innerHtml}
+        <!-- Footer -->
+        <tr>
+          <td style="background:#F9FAFB;padding:20px 24px;text-align:center;border-top:1px solid #E5E7EB;border-radius:0 0 16px 16px;">
+            <p style="font-size:12px;color:#9CA3AF;margin:0 0 4px;">📅 Moodle Calendar Sync v${SYSTEM_CONFIG.CURRENT_VERSION}</p>
+            <p style="font-size:11px;color:#D1D5DB;margin:0;">© ${year} ${escapeHtml(config.UNIVERSITY_NAME)} — Đồng bộ tự động</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
 
 // -------------------------------------------------
 // Dashboard (giữ nguyên phần còn lại)
