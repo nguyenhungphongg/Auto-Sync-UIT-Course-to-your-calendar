@@ -112,12 +112,14 @@ Script được viết cho **trường UIT** nhưng dùng được với **bất
       (Tự động đồng bộ deadline vào Google Calendar của bạn)
     </td>
     <td align="center" valign="top">
-      <img src="https://github.com/user-attachments/assets/528a0113-64f3-4993-9226-44311b6a88d2" alt="Gửi thông báo ngay mỗi 15p khi có sự thay đổi của giảng viên hoặc lỗi hệ thống" width="200">
+      <img src="https://github.com/user-attachments/assets/bbc18d1b-1765-4469-8b4f-14eae657dcb3" alt="Gửi thông báo ngay mỗi 15p khi có sự thay đổi của giảng viên hoặc lỗi hệ thống">
       <br>
       (Gửi thông báo ngay mỗi 15p khi có sự thay đổi của giảng viên hoặc lỗi hệ thống)
     </td>
   </tr>
 </table>
+
+
 
 ---
 
