@@ -282,6 +282,20 @@ Sau khi chạy cài đặt, bạn có thể đổi cấu hình ngay trên Sheet,
 | `B5` | Link Moodle |
 | `B6` | Email nhận thông báo |
 
+#### Lưu ý quan trọng khi đổi tên lịch
+
+Khi bạn đổi B4 (ví dụ từ Lịch học UIT → Lịch abcxyz):
+
+Lần đồng bộ tiếp theo, script sẽ tìm lịch tên mới.
+
+Nếu chưa có lịch tên đó → tạo lịch mới trống.
+
+Các sự kiện cũ vẫn nằm ở lịch tên cũ, không tự chuyển sang.
+
+Nếu muốn đổi tên mà vẫn giữ sự kiện:
+
+**Cách an toàn**: vào Google Calendar → đổi tên lịch thủ công cho khớp với B4 hoặc để B4 đúng tên lịch hiện đang dùng, đừng đổi lung tung sau khi đã có dữ liệu.
+
 Giá trị mới được script đọc ở lần đồng bộ kế tiếp.
 
 ### Thứ tự ưu tiên cấu hình
