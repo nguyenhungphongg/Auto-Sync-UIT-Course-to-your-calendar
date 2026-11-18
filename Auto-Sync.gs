@@ -1,6 +1,6 @@
 ﻿/*************************************************
  * MOODLE → GOOGLE CALENDAR SYNC (UNIVERSAL)
- * Version: 1.3.3 (thay đổi giao diện mail và chỉnh vài bug nhỏ)
+ * Version: 1.4.0 (email thông báo hiển thị chi tiết before/after khi lịch thay đổi)
  *************************************************/
 
 // =================================================
@@ -152,7 +152,7 @@ function onOpen() {
 // 3. ⚙️ CẤU HÌNH HỆ THỐNG
 // =================================================
 const SYSTEM_CONFIG = {
-  CURRENT_VERSION: '1.3.3',
+  CURRENT_VERSION: '1.4.0',
   LOG_SHEET_NAME: 'Moodle Calendar Sync Log',
   HISTORY_SHEET_NAME: '📜 History',
   DB_SHEET_NAME: '⚙️ Internal DB',
@@ -586,10 +586,13 @@ function updateGoogleEvent(evt, d, old, config) {
 function describeChange(old, n) {
   if (!old) return 'Cập nhật.';
   const c = [];
-  if (old.title !== n.title) c.push(`📚 Môn đổi`);
-  if (!old.start || !old.end || old.start.getTime() !== n.start.getTime() || old.end.getTime() !== n.end.getTime()) c.push(`⏰ Giờ đổi`);
-  if ((old.location || '') !== (n.location || '')) c.push(`🏫 Phòng đổi`);
-  return c.length ? c.join('\n') : 'Thay đổi.';
+  if (old.title !== n.title)
+    c.push(`📚 Môn: ${old.title} → ${n.title}`);
+  if (!old.start || !old.end || old.start.getTime() !== n.start.getTime() || old.end.getTime() !== n.end.getTime())
+    c.push(`⏰ Thời gian: ${formatDate(old.start)} – ${formatDate(old.end)} → ${formatDate(n.start)} – ${formatDate(n.end)}`);
+  if ((old.location || '') !== (n.location || ''))
+    c.push(`🏫 Phòng: ${old.location || '(chưa có)'} → ${n.location || '(chưa có)'}`);
+  return c.length ? c.join('\n') : 'Thay đổi nhỏ.';
 }
 
 function sendChangeNotification(changes, config) {
@@ -606,6 +609,65 @@ function sendChangeNotification(changes, config) {
     const icon = typeIcon[c.type] || '🔔';
     const label = typeLabel[c.type] || c.type;
     const color = typeColor[c.type] || '#6B7280';
+    const old = c.oldData;
+    const ev = c.event;
+
+    // Build diff rows for UPDATED events
+    let diffHtml = '';
+    if (c.type === 'UPDATED' && old) {
+      const rows = [];
+      // Title
+      if (old.title !== ev.title)
+        rows.push({ icon: '📚', label: 'Môn học', before: old.title, after: ev.title });
+      // Time
+      const timeChanged = !old.start || !old.end ||
+        old.start.getTime() !== ev.start.getTime() ||
+        old.end.getTime() !== ev.end.getTime();
+      if (timeChanged)
+        rows.push({
+          icon: '⏰', label: 'Thời gian',
+          before: (old.start ? formatDate(old.start) : '?') + ' – ' + (old.end ? formatDate(old.end) : '?'),
+          after:  (ev.start  ? formatDate(ev.start)  : '?') + ' – ' + (ev.end  ? formatDate(ev.end)  : '?')
+        });
+      // Location
+      if ((old.location || '') !== (ev.location || ''))
+        rows.push({ icon: '🏫', label: 'Phòng học', before: old.location || '(chưa có)', after: ev.location || '(chưa có)' });
+
+      if (rows.length > 0) {
+        diffHtml = '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;border-top:1px solid #F3F4F6;padding-top:12px;">';
+        rows.forEach(r => {
+          diffHtml += `
+            <tr>
+              <td style="font-size:12px;color:#9CA3AF;padding-bottom:8px;white-space:nowrap;padding-right:8px;">${r.icon} ${r.label}</td>
+            </tr>
+            <tr>
+              <td style="padding-bottom:10px;">
+                <table cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="font-size:13px;color:#EF4444;text-decoration:line-through;background:#FEF2F2;border-radius:6px;padding:4px 10px;white-space:nowrap;">${escapeHtml(r.before)}</td>
+                    <td style="font-size:16px;color:#9CA3AF;padding:0 8px;">→</td>
+                    <td style="font-size:13px;color:#059669;font-weight:600;background:#ECFDF5;border-radius:6px;padding:4px 10px;white-space:nowrap;">${escapeHtml(r.after)}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>`;
+        });
+        diffHtml += '</table>';
+      }
+    } else if (c.type === 'ADDED') {
+      // Show full info for new events
+      diffHtml = `<div style="margin-top:10px;font-size:14px;color:#4B5563;line-height:1.7;">
+        ${ev.start ? '📅 <strong>' + formatDate(ev.start) + '</strong> – <strong>' + formatDate(ev.end) + '</strong>' : ''}
+        ${ev.location ? '<br>🏫 ' + escapeHtml(ev.location) : ''}
+      </div>`;
+    } else if (c.type === 'DELETED') {
+      // Show what was deleted
+      diffHtml = `<div style="margin-top:10px;font-size:14px;color:#9CA3AF;line-height:1.7;text-decoration:line-through;">
+        ${ev.start ? '📅 ' + formatDate(ev.start) + ' – ' + formatDate(ev.end) : ''}
+        ${ev.location ? '<br>🏫 ' + escapeHtml(ev.location) : ''}
+      </div>`;
+    }
+
     cardsHtml += `
       <tr><td style="padding:6px 24px 6px 24px;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:12px;border:1px solid #E5E7EB;overflow:hidden;">
@@ -613,17 +675,13 @@ function sendChangeNotification(changes, config) {
             <td style="border-left:5px solid ${color};padding:16px 20px;">
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="font-size:13px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:6px;">${icon} ${label}</td>
+                  <td style="font-size:12px;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding-bottom:6px;">${icon} ${label}</td>
                 </tr>
                 <tr>
-                  <td style="font-size:17px;font-weight:700;color:#1F2937;padding-bottom:8px;">${escapeHtml(c.event.title)}</td>
+                  <td style="font-size:17px;font-weight:700;color:#1F2937;padding-bottom:2px;">${escapeHtml(ev.title)}</td>
                 </tr>
                 <tr>
-                  <td style="font-size:14px;color:#4B5563;line-height:1.6;">
-                    ${c.event.start ? '📅 <strong>' + formatDate(c.event.start) + '</strong>' : ''}
-                    ${c.event.location ? '<br>🏫 ' + escapeHtml(c.event.location) : ''}
-                    ${c.details ? '<br>📝 ' + escapeHtml(c.details).replace(/\n/g, '<br>') : ''}
-                  </td>
+                  <td>${diffHtml}</td>
                 </tr>
               </table>
             </td>
@@ -663,7 +721,11 @@ function sendChangeNotification(changes, config) {
   `);
 
   let plainBody = `Phát hiện ${changes.length} thay đổi:\n\n`;
-  changes.forEach(c => { plainBody += `━ Môn: ${c.event.title}\nNgày: ${formatDate(c.event.start)}\n${c.details}\n\n`; });
+  changes.forEach(c => {
+    plainBody += `━ [${c.type}] ${c.event.title}\nNgày: ${formatDate(c.event.start)}\n`;
+    if (c.details) plainBody += c.details + '\n';
+    plainBody += '\n';
+  });
 
   MailApp.sendEmail({ to: config.NOTIFY_EMAIL, subject: sub, body: plainBody, htmlBody: htmlBody });
 }
